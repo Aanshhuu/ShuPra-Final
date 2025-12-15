@@ -1,0 +1,248 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shupra Protects — Welcome</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .landing-container { max-width: 1160px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
+    .landing-nav { display: flex; justify-content: space-between; align-items: center; }
+    .landing-hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px; align-items: center; padding: 48px; }
+    .landing-hero h1 { font-size: clamp(36px, 5vw, 56px); margin: 12px 0; line-height: 1.1; }
+    .landing-hero p { color: var(--muted); max-width: 520px; }
+    .landing-cta { display:flex; gap:12px; flex-wrap: wrap; margin-top: 24px; }
+    .hero-visual { position: relative; padding: 24px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.12); background: radial-gradient(circle at 20% 20%, rgba(255,106,206,0.15), rgba(27,22,49,0.5)); box-shadow: var(--shadow); }
+    .hero-visual::after { content:''; position:absolute; inset:12px; border:1px dashed rgba(255,255,255,0.09); border-radius: 20px; pointer-events:none; }
+    .hero-stats { display: grid; gap: 14px; margin-top: 20px; }
+    .hero-stat { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); }
+    .hero-stat strong { font-size: 18px; color: var(--text); }
+    .live-widget { margin-top: 24px; background: rgba(4,5,16,0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 18px; }
+    .live-widget h4 { margin: 0 0 8px; font-size: 16px; }
+    .live-feed { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+    .live-feed li { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+    .badge-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .badge-row span { font-size: 13px; }
+    .trust-bar { display: flex; gap: 24px; justify-content: space-between; flex-wrap: wrap; background: rgba(255,255,255,0.05); padding: 18px 24px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.06); }
+    .trust-item { font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+    .trust-item strong { color: var(--text); display: block; }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; padding: 0 20px 20px; }
+    .feature-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 24px; }
+    .feature-card h3 { margin: 0 0 10px; }
+    .feature-card p { color: var(--muted); margin: 0; }
+    .timeline { display: grid; gap: 16px; margin: 10px 0; }
+    .timeline-step { border-left: 2px solid rgba(255,255,255,0.12); padding-left: 16px; }
+    .timeline-step span { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .timeline-step h4 { margin: 4px 0; }
+    .split-panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .testimonial { background: rgba(255,255,255,0.04); border-radius: 20px; padding: 24px; border: 1px solid rgba(255,255,255,0.08); }
+    .testimonial blockquote { margin: 0; font-size: 20px; line-height: 1.4; }
+    .testimonial cite { display: block; margin-top: 12px; font-style: normal; color: var(--muted); }
+    .blog-preview { background: rgba(255,255,255,0.03); border-radius: 20px; padding: 24px; border: 1px solid rgba(255,255,255,0.06); }
+    .blog-preview ul { padding-left: 20px; color: var(--muted); }
+    .cta-panel { text-align: center; padding: 40px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.08); background: linear-gradient(130deg, rgba(255,106,206,0.18), rgba(139,92,246,0.18)); }
+    .cta-panel h2 { margin: 0 0 10px; font-size: clamp(28px, 4vw, 40px); }
+    .cta-panel p { color: var(--muted); margin: 0 auto 20px; max-width: 520px; }
+    @media (max-width: 720px) {
+      .landing-hero { padding: 28px; }
+      .landing-nav { flex-direction: column; gap: 16px; }
+      .hero-visual { padding: 18px; }
+      .cta-panel { padding: 28px; }
+    }
+  </style>
+</head>
+<body class="neon-bg">
+  <div class="landing-container">
+    <nav class="landing-nav">
+      <div class="logo-badge">
+        <span class="logo-icon">🧸</span>
+        <strong>Shupra Protects</strong>
+      </div>
+      <div class="nav-actions">
+        <a class="btn ghost" href="login.html">Login / Signup</a>
+      </div>
+    </nav>
+
+    <header class="landing-hero glass-panel">
+      <div>
+        <span class="chip">Inbox guardian · Chrome extension · Smarter alerts</span>
+        <h1>Turn phishing chaos into a neon calm zone.</h1>
+        <p>Shupra Protects mixes adorable vibes with serious telemetry. Install our extension, open your inbox, and get real-time risk stories, community-driven threat intel, and cozy explanations you can actually use.</p>
+        <div class="landing-cta">
+          <a class="btn primary" href="login.html">Launch my radar</a>
+          <a class="btn secondary" href="login.html">Login / Signup</a>
+          <button class="btn ghost" id="play-sound">Hear alert</button>
+        </div>
+        <div class="badge-row">
+          <span class="chip">LLM reasoning</span>
+          <span class="chip">Zero inbox storage</span>
+          <span class="chip">Made for indie teams</span>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><span>Suspicious emails intercepted</span><strong id="stat-intercepted">0</strong></div>
+          <div class="hero-stat"><span>Avg. investigation time saved</span><strong id="stat-saved">0 min</strong></div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div style="font-size:72px; text-align:center;">🛡️✨</div>
+        <p style="text-align:center; color:var(--muted); margin: 8px 0 16px;">Live radar mock</p>
+        <div class="live-widget">
+          <h4>Live feed</h4>
+          <ul class="live-feed" id="live-feed"></ul>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><span>Today's vibe</span><strong id="stat-vibe">Calm</strong></div>
+          <div class="hero-stat"><span>Community detections</span><strong id="stat-community">0</strong></div>
+        </div>
+      </div>
+    </header>
+
+    <section class="trust-bar">
+      <div class="trust-item">
+        <span>🌐</span>
+        <div><strong>25k+</strong>Indie pros protected</div>
+      </div>
+      <div class="trust-item">
+        <span>⚙️</span>
+        <div><strong>Workspace ready</strong>Google & Outlook</div>
+      </div>
+      <div class="trust-item">
+        <span>🔍</span>
+        <div><strong>LLM-backed</strong>OpenRouter stack</div>
+      </div>
+      <div class="trust-item">
+        <span>🤝</span>
+        <div><strong>Privacy pledge</strong>Zero message storage</div>
+      </div>
+    </section>
+
+    <section class="glass-panel">
+      <span class="chip">How it works</span>
+      <h2 style="margin: 10px 0 18px;">Inbox clarity in three fun steps</h2>
+      <div class="timeline">
+        <div class="timeline-step">
+          <span>Step 1</span>
+          <h4>Add the extension</h4>
+          <p class="muted">Install from Chrome Web Store, grant read-only access, and our mascot begins watching your opened emails.</p>
+        </div>
+        <div class="timeline-step">
+          <span>Step 2</span>
+          <h4>Let SuPra scan</h4>
+          <p class="muted">Each email flows through layered detectors, LLM reasoning, and community intel to spot urgent patterns.</p>
+        </div>
+        <div class="timeline-step">
+          <span>Step 3</span>
+          <h4>Enjoy playful briefings</h4>
+          <p class="muted">Your dashboard glows with alerts, stories, and to-dos while you sip boba instead of decoding headers.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="feature-grid">
+      <div class="feature-card">
+        <h3>Realtime protection</h3>
+        <p>Scans emails as you view them and streams findings to your personal dashboard.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Personalized radar</h3>
+        <p>Risk scores, trending scams, and keywords adapt to your unique inbox habits.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Privacy-first</h3>
+        <p>Zero message bodies saved; you control retention and can nuke data anytime.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Team friendly</h3>
+        <p>Invite collaborators, export to Slack, or schedule digest emails for your crew.</p>
+      </div>
+    </section>
+
+    <section class="split-panels">
+      <div class="testimonial">
+        <span class="chip">Community love</span>
+        <blockquote>“Shupra took our chaotic inbox and turned it into a game-like radar. The neon alerts make phishing drills fun, and the explanations actually teach my team.”</blockquote>
+        <cite>— Amara, Head of Operations @ CozyCollective</cite>
+      </div>
+      <div class="blog-preview">
+        <span class="chip">Latest journal</span>
+        <h3>Pink alert: Fake payroll portals</h3>
+        <p class="muted">The mascot spotted a wave of spoofed payroll pages copying Workday UI. Here’s how to double-check before handing over credentials:</p>
+        <ul>
+          <li>Hover to confirm domains before tapping pastel buttons.</li>
+          <li>Look for odd payment urgency or mismatched fonts.</li>
+          <li>Let SuPra compare metadata across your team.</li>
+        </ul>
+        <a class="btn ghost" href="login.html" style="margin-top:12px;">Read the full post</a>
+      </div>
+    </section>
+
+    <section class="cta-panel">
+      <span class="chip">Ready?</span>
+      <h2>Install today, chill tomorrow.</h2>
+      <p>Spin up your neon radar in under two minutes. Free for individuals, playful for teams, and brutally honest with scammers.</p>
+      <div class="landing-cta" style="justify-content:center;">
+        <a class="btn primary" href="login.html">Create free account</a>
+        <a class="btn secondary" href="login.html">Login</a>
+      </div>
+    </section>
+  </div>
+
+  <audio id="landing-alert" src="public/alert.wav" preload="auto" aria-hidden="true"></audio>
+  <script>
+    const feedEl = document.getElementById('live-feed');
+    const statIntercepted = document.getElementById('stat-intercepted');
+    const statSaved = document.getElementById('stat-saved');
+    const statVibe = document.getElementById('stat-vibe');
+    const statCommunity = document.getElementById('stat-community');
+    const alertSound = document.getElementById('landing-alert');
+    const playSoundBtn = document.getElementById('play-sound');
+
+    const feedSamples = [
+      { from: 'Payroll HQ', score: 82, tag: 'Spoofed domain' },
+      { from: 'Parcel Notice', score: 65, tag: 'Urgent payment' },
+      { from: 'Crypto Giveaways', score: 91, tag: 'Wallet drain' },
+      { from: 'HR Update', score: 34, tag: 'Safe' }
+    ];
+
+    let feedIndex = 0;
+    let totalIntercepted = 18452;
+    let totalSaved = 6;
+    let vibeStates = ['Calm', 'Watch', 'Pink Alert'];
+
+    const renderFeed = () => {
+      if (!feedEl) return;
+      const slice = [feedSamples[feedIndex], feedSamples[(feedIndex + 1) % feedSamples.length]];
+      feedEl.innerHTML = slice.map(entry => `
+        <li>
+          <span><strong>${entry.score}%</strong> · ${entry.from}</span>
+          <span>${entry.tag}</span>
+        </li>
+      `).join('');
+      feedIndex = (feedIndex + 1) % feedSamples.length;
+    };
+
+    const animateStats = () => {
+      totalIntercepted += Math.floor(Math.random() * 5);
+      totalSaved = 6 + Math.floor(Math.random() * 4);
+      const community = 420 + Math.floor(Math.random() * 20);
+      if (statIntercepted) statIntercepted.textContent = totalIntercepted.toLocaleString();
+      if (statSaved) statSaved.textContent = `${totalSaved} min`;
+      if (statCommunity) statCommunity.textContent = `${community} alerts`;
+      if (statVibe) statVibe.textContent = vibeStates[Math.floor(Math.random() * vibeStates.length)];
+    };
+
+    renderFeed();
+    animateStats();
+    setInterval(() => {
+      renderFeed();
+      animateStats();
+    }, 3500);
+
+    playSoundBtn?.addEventListener('click', () => {
+      if (!alertSound) return;
+      alertSound.currentTime = 0;
+      alertSound.play().catch(() => {});
+    });
+  </script>
+</body>
+</html>

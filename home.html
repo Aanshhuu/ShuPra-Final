@@ -1,0 +1,578 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Shupra Protects - Home</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .muted { color: var(--muted); }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .table-card h3 { margin: 0; }
+    .highlight-card ul { margin: 0; padding-left: 18px; color: var(--muted); }
+    .highlight-card li { margin-bottom: 4px; }
+    .high-risk-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 14px; color: var(--muted); }
+    .blog-card { background: linear-gradient(135deg, rgba(255, 106, 206, 0.08), rgba(139, 92, 246, 0.08)); }
+    .table-card { min-height: 520px; }
+    .blog-card ul li { margin-bottom: 4px; }
+    .tutorial-card { margin-top: 24px; display: grid; gap: 16px; }
+    .tutorial-card ol { margin: 0; padding-left: 20px; color: var(--muted); }
+    .tutorial-card li { margin-bottom: 6px; }
+    .tutorial-card a.btn { width: fit-content; }
+  </style>
+</head>
+<body class="neon-bg">
+  <div class="dashboard-shell">
+    <header class="glass-panel hero-card">
+      <div class="hero-copy">
+        <div class="logo-badge">
+          <span class="logo-icon">🧸</span>
+          <div>
+            <strong id="user-name">Loading...</strong>
+            <div class="muted" id="user-email">...</div>
+          </div>
+        </div>
+        <h1>Personalized Phishing Radar</h1>
+        <p>Live telemetry from your mailbox, neon-dipped in cute visuals. Install the extension, open emails, and see the risk feed bloom in real time.</p>
+        <div class="hero-actions">
+          <a id="download" class="btn primary" href="https://chrome.google.com/webstore/detail/YOUR-EXTENSION-ID" target="_blank">Install Extension</a>
+          <button class="btn secondary" onclick="logout()">Logout</button>
+        </div>
+        <div class="hero-stat-row">
+          <div class="mini-stat">
+            <span>Realtime sync</span>
+            <strong id="hero-sync-status">Connected</strong>
+          </div>
+          <div class="mini-stat">
+            <span>Last alert</span>
+            <strong id="hero-last-alert">Waiting...</strong>
+          </div>
+          <div class="mini-stat openrouter-link">
+            <span>LLM coverage</span>
+            <strong><a href="https://openrouter.ai/keys" target="_blank" rel="noopener">OpenRouter</a></strong>
+          </div>
+        </div>
+      </div>
+      <div class="hero-illustration">
+        <div class="hero-avatar">
+          <img src="public/favicon.png" alt="Mascot" width="90" height="90" style="filter: drop-shadow(0 10px 25px rgba(0,0,0,0.4)); border-radius: 24px; background: rgba(255,255,255,0.08); padding: 16px;">
+          <span class="chip">Realtime sync</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="glow-card">
+        <span class="chip">Total scans</span>
+        <div class="stat-value" id="stat-total">0</div>
+        <div class="stat-label">Emails analyzed for you</div>
+      </div>
+      <div class="glow-card">
+        <span class="chip">High risk</span>
+        <div class="stat-value" id="stat-risky">0</div>
+        <div class="stat-label">Flagged ≥70% confidence</div>
+      </div>
+      <div class="glow-card">
+        <span class="chip">Chill vibes</span>
+        <div class="stat-value" id="stat-safe">0</div>
+        <div class="stat-label">Considered low risk</div>
+      </div>
+    </section>
+
+    <section class="panel-grid">
+      <div class="glow-card table-card">
+        <div class="panel-header">
+          <div>
+            <h3>Live inbox monitor</h3>
+            <p class="muted">Newest events stream in automatically</p>
+          </div>
+          <span class="chip">Realtime</span>
+        </div>
+        <div class="table-wrapper">
+          <table id="events">
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>Email ID</th>
+                <th>Phishing Score</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="4" class="no-data">No email analyses yet. Install the extension and open some emails!</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="insights-grid">
+        <div class="glow-card highlight-card" id="high-risk-card">
+          <span class="chip">🔥 Riskiest email right now</span>
+          <h3 id="high-risk-title">No suspicious email yet</h3>
+          <div class="high-risk-meta" id="high-risk-meta"></div>
+          <ul id="high-risk-indicators"></ul>
+        </div>
+        <div class="glow-card blog-card">
+          <span class="chip">Security Journal</span>
+          <h3>Today's pink alert</h3>
+          <p class="blog-highlight" id="blog-highlight">We haven't spotted anything scary today. ☕️</p>
+          <p>We recap the most worrying trend in your inbox and leave soft reminders:</p>
+          <ul>
+            <li>Double-check domains before tapping cute buttons.</li>
+            <li>Ignore "urgent" payment requests unless verified.</li>
+            <li>Let the extension auto-scan while you sip boba.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="visual-grid">
+      <div class="glow-card chart-card">
+        <div class="panel-header">
+          <div>
+            <h3>Risk trend</h3>
+            <p class="muted">Last 12 scans</p>
+          </div>
+          <span class="chip" id="trend-badge">Idle</span>
+        </div>
+        <canvas id="risk-chart" height="200"></canvas>
+      </div>
+      <div class="glow-card meter-card">
+        <div class="panel-header">
+          <div>
+            <h3>Live meter</h3>
+            <p class="muted">Average confidence</p>
+          </div>
+        </div>
+        <div class="risk-meter">
+          <div id="risk-meter-fill"></div>
+        </div>
+        <div class="risk-meter-info">
+          <strong id="risk-meter-value">0%</strong>
+          <span id="risk-meter-status">Awaiting scans</span>
+        </div>
+        <ul class="activity-feed" id="activity-feed">
+          <li>No events yet</li>
+        </ul>
+      </div>
+      <div class="glow-card keywords-card">
+        <div class="panel-header">
+          <div>
+            <h3>Top indicators</h3>
+            <p class="muted">What SuPra flagged recently</p>
+          </div>
+        </div>
+        <div class="badge-grid" id="keyword-badges">
+          <span>Waiting for scans</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="board-story glow-card">
+      <div>
+        <span class="chip">Inbox digest</span>
+        <h3>Daily summary</h3>
+        <p id="board-summary">Open an email with the extension to populate your personalized summary.</p>
+      </div>
+      <div class="board-story-metrics">
+        <div>
+          <span>Top keyword</span>
+          <strong id="board-keyword">None yet</strong>
+        </div>
+        <div>
+          <span>Latest risk</span>
+          <strong id="board-last-score">0%</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="glow-card tutorial-card">
+      <div>
+        <span class="chip">Need to wire up the Chrome extension?</span>
+        <h3>Drop your OpenRouter API key into the extension in 3 steps</h3>
+        <p class="muted">Follow the mini tutorial to pull the sample code, paste your key, and reload the extension so you get instant insights from the models we use on the backend.</p>
+      </div>
+      <ol>
+        <li>Visit the OpenRouter setup snippet and copy the <code>const OPENROUTER_KEY = "";</code> block.</li>
+        <li>Open the extension’s <code>firebase-config.js</code> (or settings modal) and paste your key between the quotes.</li>
+        <li>Reload the extension in Chrome (chrome://extensions → Reload) and open an email to confirm alerts appear.</li>
+      </ol>
+      <a class="btn secondary" href="https://openrouter.ai/docs/quick-start" target="_blank" rel="noopener">Open OpenRouter tutorial ↗</a>
+    </section>
+  </div>
+
+  <script type="module">
+    import { auth, db, onAuthStateChanged, signOut, doc, getDoc } from './public/firebase-config.js';
+    import { collection, query, onSnapshot, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const tbody = document.querySelector("#events tbody");
+    const statTotalEl = document.getElementById('stat-total');
+    const statRiskyEl = document.getElementById('stat-risky');
+    const statSafeEl = document.getElementById('stat-safe');
+    const highRiskTitle = document.getElementById('high-risk-title');
+    const highRiskMeta = document.getElementById('high-risk-meta');
+    const highRiskIndicators = document.getElementById('high-risk-indicators');
+    const blogHighlight = document.getElementById('blog-highlight');
+    const riskChartCanvas = document.getElementById('risk-chart');
+    const riskMeterFill = document.getElementById('risk-meter-fill');
+    const riskMeterValue = document.getElementById('risk-meter-value');
+    const riskMeterStatus = document.getElementById('risk-meter-status');
+    const keywordBadges = document.getElementById('keyword-badges');
+    const activityFeed = document.getElementById('activity-feed');
+    const trendBadge = document.getElementById('trend-badge');
+    const boardSummary = document.getElementById('board-summary');
+    const boardKeyword = document.getElementById('board-keyword');
+    const boardLastScore = document.getElementById('board-last-score');
+    const heroLastAlert = document.getElementById('hero-last-alert');
+    let unsubscribeEvents = null;
+
+    const renderEmptyState = () => {
+      tbody.innerHTML = '<tr><td colspan="4" class="no-data">No email analyses yet. Install the extension and open some emails!</td></tr>';
+      updateStats([]);
+      updateHighRisk([]);
+      updateVisualizations([]);
+      if (boardSummary) boardSummary.textContent = 'Open an email with the extension to populate your personalized summary.';
+      if (boardKeyword) boardKeyword.textContent = 'None yet';
+      if (boardLastScore) boardLastScore.textContent = '0%';
+      if (heroLastAlert) heroLastAlert.textContent = 'Waiting...';
+    };
+
+    const getTimestampValue = (rawTimestamp) => {
+      if (typeof rawTimestamp === 'object' && rawTimestamp?.seconds) {
+        return rawTimestamp.seconds * 1000;
+      }
+      if (typeof rawTimestamp === 'string') {
+        return Number(rawTimestamp);
+      }
+      if (typeof rawTimestamp === 'number') {
+        return rawTimestamp;
+      }
+      return Date.now();
+    };
+
+    const subscribeToUserEvents = (userEmail) => {
+      if (!userEmail) {
+        renderEmptyState();
+        return;
+      }
+
+      if (unsubscribeEvents) {
+        unsubscribeEvents();
+      }
+
+      const eventsQuery = query(
+        collection(db, "emailEvents"),
+        where("user", "==", userEmail)
+      );
+
+      unsubscribeEvents = onSnapshot(eventsQuery, (snap) => {
+        if (snap.empty) {
+          renderEmptyState();
+          return;
+        }
+
+        tbody.innerHTML = "";
+        const docs = snap.docs.slice().sort((a, b) => {
+          const aTime = getTimestampValue(a.data().timestamp);
+          const bTime = getTimestampValue(b.data().timestamp);
+          return bTime - aTime;
+        });
+
+        docs.forEach(doc => {
+          const d = doc.data();
+
+          const dateTime = new Date(getTimestampValue(d.timestamp)).toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+
+          const emailId = d.from || d.user || "Unknown";
+          const score = d.score ?? d.confidence ?? 0;
+          const isPhishing = d.isPhishing ?? (score >= 50);
+
+          let scoreClass = 'score-safe';
+          let scoreText = `${score}% - Safe`;
+
+          if (isPhishing || score >= 70) {
+            scoreClass = 'score-danger';
+            scoreText = `${score}% - Phishing`;
+          } else if (score >= 40) {
+            scoreClass = 'score-warning';
+            scoreText = `${score}% - Warning`;
+          }
+
+          const reasons = d.reasons || d.indicators || [];
+          const reasonsHtml = reasons.length > 0 
+            ? `<ul class="reason-list">${reasons.map(r => `<li>${r}</li>`).join("")}</ul>`
+            : `<span style="color: #10b981;">No suspicious indicators found</span>`;
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${dateTime}</td>
+            <td>${emailId}</td>
+            <td><span class="score-badge ${scoreClass}">${scoreText}</span></td>
+            <td>${reasonsHtml}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        const entryData = docs.map(doc => doc.data());
+        updateStats(entryData);
+        updateHighRisk(entryData);
+        updateVisualizations(entryData);
+      }, (error) => {
+        console.error('Error loading email events:', error);
+        renderEmptyState();
+      });
+    };
+
+    const updateStats = (entries) => {
+      const total = entries.length;
+      const risky = entries.filter(d => {
+        const score = d.score ?? d.confidence ?? 0;
+        return d.isPhishing || score >= 70;
+      }).length;
+      const safe = total - risky;
+
+      statTotalEl.textContent = total;
+      statRiskyEl.textContent = risky;
+      statSafeEl.textContent = safe < 0 ? 0 : safe;
+    };
+
+    const updateHighRisk = (entries) => {
+      if (!entries.length) {
+        highRiskTitle.textContent = 'No suspicious email yet';
+        highRiskMeta.innerHTML = '';
+        highRiskIndicators.innerHTML = '';
+        blogHighlight.textContent = 'We haven\'t spotted anything scary today. ☕️';
+        return;
+      }
+
+      const riskiest = entries.reduce((acc, curr) => {
+        const score = curr.score ?? curr.confidence ?? 0;
+        const currScore = curr.isPhishing ? Math.max(score, 70) : score;
+        const accScore = acc ? (acc.isPhishing ? Math.max(acc.score ?? acc.confidence ?? 0, 70) : (acc.score ?? acc.confidence ?? 0)) : -1;
+        return currScore > accScore ? curr : acc;
+      }, null);
+
+      const score = riskiest.score ?? riskiest.confidence ?? 0;
+      highRiskTitle.textContent = riskiest.subject || 'Untitled email';
+      highRiskMeta.innerHTML = `
+        <span>From: <strong>${riskiest.from || 'Unknown sender'}</strong></span>
+        <span>Score: <strong>${score}%</strong></span>
+        <span>Status: <strong>${(riskiest.isPhishing || score >= 70) ? 'High risk' : 'Under review'}</strong></span>
+      `;
+
+      const reasons = riskiest.reasons || riskiest.indicators || [];
+      if (reasons.length) {
+        highRiskIndicators.innerHTML = reasons.slice(0, 4).map(r => `<li>${r}</li>`).join('');
+      } else {
+        highRiskIndicators.innerHTML = '<li>No extra indicators logged.</li>';
+      }
+
+      const summaryText = `Your highest risk email "${riskiest.subject || 'Unknown'}" from ${riskiest.from || 'unknown sender'} scored ${score}%.`;
+      if (boardSummary) {
+        boardSummary.textContent = summaryText;
+      }
+
+      blogHighlight.textContent = `Top risk: "${riskiest.subject || 'Unknown'}" tried to lure you with ${reasons[0] || 'generic urgency'}. Keep your guard up!`;
+    };
+
+    const updateVisualizations = (entries) => {
+      drawRiskTrend(entries);
+      updateRiskMeter(entries);
+      updateKeywordBadges(entries);
+      updateActivity(entries);
+    };
+
+    const drawRiskTrend = (entries) => {
+      if (!riskChartCanvas) return;
+      const ctx = riskChartCanvas.getContext('2d');
+      const ratio = window.devicePixelRatio || 1;
+      const width = riskChartCanvas.clientWidth || 300;
+      const height = 200;
+      riskChartCanvas.width = width * ratio;
+      riskChartCanvas.height = height * ratio;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, riskChartCanvas.width, riskChartCanvas.height);
+      ctx.scale(ratio, ratio);
+
+      if (!entries.length) {
+        trendBadge.textContent = 'Idle';
+        return;
+      }
+
+      const values = entries.slice(0, 12).map(d => d.score ?? d.confidence ?? 0).reverse();
+      const maxVal = 100;
+      ctx.beginPath();
+      ctx.lineWidth = 2;
+      const gradient = ctx.createLinearGradient(0, 0, width, 0);
+      gradient.addColorStop(0, '#ff6ace');
+      gradient.addColorStop(1, '#8b5cf6');
+      ctx.strokeStyle = gradient;
+      ctx.fillStyle = 'rgba(255, 106, 206, 0.1)';
+
+      const stepX = values.length > 1 ? width / (values.length - 1) : width;
+      values.forEach((value, index) => {
+        const x = index * stepX;
+        const y = height - (value / maxVal) * height;
+        if (index === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+      ctx.stroke();
+
+      ctx.lineTo(width, height);
+      ctx.lineTo(0, height);
+      ctx.closePath();
+      ctx.fill();
+
+      const last = values[values.length - 1];
+      if (trendBadge) {
+        if (last >= 70) {
+          trendBadge.textContent = 'Hot';
+        } else if (last >= 40) {
+          trendBadge.textContent = 'Watch';
+        } else {
+          trendBadge.textContent = 'Calm';
+        }
+      }
+    };
+
+    const updateRiskMeter = (entries) => {
+      if (!riskMeterFill) return;
+      if (!entries.length) {
+        riskMeterFill.style.width = '0%';
+        riskMeterValue.textContent = '0% avg risk';
+        riskMeterStatus.textContent = 'Awaiting scans';
+        return;
+      }
+      const values = entries.map(d => d.score ?? d.confidence ?? 0);
+      const avg = Math.round(values.reduce((sum, v) => sum + v, 0) / values.length);
+      riskMeterFill.style.width = `${avg}%`;
+      riskMeterValue.textContent = `${avg}% avg risk`;
+      let status = 'Calm vibes';
+      if (avg >= 70) {
+        status = 'High alert';
+      } else if (avg >= 40) {
+        status = 'Stay cautious';
+      }
+      riskMeterStatus.textContent = status;
+    };
+
+    const updateKeywordBadges = (entries) => {
+      if (!keywordBadges) return;
+      if (!entries.length) {
+        keywordBadges.innerHTML = '<span>Waiting for scans</span>';
+        return;
+      }
+      const freq = {};
+      entries.forEach(entry => {
+        (entry.reasons || entry.indicators || []).forEach(reason => {
+          const key = reason.trim();
+          if (key) {
+            freq[key] = (freq[key] || 0) + 1;
+          }
+        });
+      });
+      const top = Object.entries(freq)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+      if (!top.length) {
+        keywordBadges.innerHTML = '<span>No indicators yet</span>';
+        if (boardKeyword) boardKeyword.textContent = 'None yet';
+        return;
+      }
+      keywordBadges.innerHTML = top
+        .map(([text, count]) => `<span>${text} (${count})</span>`)
+        .join('');
+      if (boardKeyword) {
+        boardKeyword.textContent = top[0][0];
+      }
+    };
+
+    const updateActivity = (entries) => {
+      if (!activityFeed) return;
+      if (!entries.length) {
+        activityFeed.innerHTML = '<li>No events yet</li>';
+        return;
+      }
+      const latest = entries.slice(0, 4);
+      activityFeed.innerHTML = latest.map(entry => {
+        const score = entry.score ?? entry.confidence ?? 0;
+        const isRisk = entry.isPhishing || score >= 70;
+        const sender = entry.from || entry.user || 'Unknown';
+        const subject = entry.subject || 'Untitled';
+        return `
+          <li>
+            <span class="feed-dot ${isRisk ? 'risky' : 'safe'}"></span>
+            <div>
+              <strong>${subject}</strong> · ${score}%
+              <div class="muted">from ${sender}</div>
+            </div>
+          </li>
+        `;
+      }).join('');
+      if (boardLastScore) {
+        const first = entries[0];
+        const score = first ? (first.score ?? first.confidence ?? 0) : 0;
+        boardLastScore.textContent = `${score}%`;
+      }
+      if (heroLastAlert) {
+        const first = entries[0];
+        heroLastAlert.textContent = first ? new Date(getTimestampValue(first.timestamp)).toLocaleTimeString() : 'Waiting...';
+      }
+    };
+
+    // Check if user is logged in and display their info
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // Get user's name from Firestore
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            document.getElementById('user-name').textContent = `Welcome, ${userData.name}!`;
+            document.getElementById('user-email').textContent = user.email;
+          } else {
+            // Fallback if no name is stored
+            document.getElementById('user-name').textContent = `Welcome!`;
+            document.getElementById('user-email').textContent = user.email;
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          document.getElementById('user-name').textContent = `Welcome!`;
+          document.getElementById('user-email').textContent = user.email;
+        }
+        console.log('Logged in user:', user);
+
+        subscribeToUserEvents(user.email);
+      } else {
+        // Redirect to login if not authenticated
+        if (unsubscribeEvents) {
+          unsubscribeEvents();
+          unsubscribeEvents = null;
+        }
+        window.location.href = 'login.html';
+      }
+    });
+
+    // Logout function
+    window.logout = async () => {
+      try {
+        await signOut(auth);
+        window.location.href = 'index.html';
+      } catch (error) {
+        console.error('Error signing out:', error);
+        alert('Error logging out. Please try again.');
+      }
+    };
+  </script>
+</body>
+</html>

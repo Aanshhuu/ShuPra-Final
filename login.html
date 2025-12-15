@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SuPra Detects · Login</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="neon-bg auth-page">
+  <div class="auth-wrapper login-layout">
+    <div class="glass-panel auth-card center-card">
+      <div class="logo-badge">
+        <span class="logo-icon">🌸</span>
+        <strong>Shupra Protects</strong>
+        <span class="chip"><i>by Anshu & Prasanna</i></span>
+      </div>
+      <h1 id="form-title">Log in to your cozy vault</h1>
+      <p class="subtitle">Fierce security. View your personalized phishing radar and sync the dashboard with your extension.</p>
+
+      <form id="auth-form" class="auth-form">
+        <div class="input-group" id="name-group" style="display: none;">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" placeholder="e.g. Nova Bear" autocomplete="name">
+        </div>
+        <div class="input-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="you@securemail.com" required autocomplete="email">
+        </div>
+        <div class="input-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn primary" id="submit-btn">Login</button>
+        <div class="error-message" id="error-message"></div>
+        <div class="success-message" id="success-message"></div>
+        <div class="post-signup" id="post-signup" style="display: none;">
+          <p>Ready to connect your extension? Grab a fresh OpenRouter key:</p>
+          <a id="get-key-btn" class="btn secondary" href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer">Get API Key</a>
+        </div>
+      </form>
+
+      <div class="toggle-text">
+        <span id="toggle-message">Don't have an account?</span>
+        <a href="#" id="toggle-link">Sign up</a>
+      </div>
+    </div>
+
+  <script type="module" src="public/login.js"></script>
+</body>
+</html>
