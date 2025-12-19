@@ -8,20 +8,147 @@
     .muted { color: var(--muted); }
     .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
     .table-card h3 { margin: 0; }
-    .highlight-card ul { margin: 0; padding-left: 18px; color: var(--muted); }
+    .highlight-card ul { margin: 0; padding-left: 16px; color: var(--muted); }
     .highlight-card li { margin-bottom: 4px; }
-    .high-risk-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 14px; color: var(--muted); }
-    .blog-card { background: linear-gradient(135deg, rgba(255, 106, 206, 0.08), rgba(139, 92, 246, 0.08)); }
+    .high-risk-meta { display: grid; gap: 6px; font-size: 13px; color: var(--muted); }
     .table-card { min-height: 520px; }
-    .blog-card ul li { margin-bottom: 4px; }
-    .tutorial-card { margin-top: 24px; display: grid; gap: 16px; }
-    .tutorial-card ol { margin: 0; padding-left: 20px; color: var(--muted); }
-    .tutorial-card li { margin-bottom: 6px; }
-    .tutorial-card a.btn { width: fit-content; }
+
+    /* --- layout cleanup --- */
+    .dashboard-main {
+      margin-top: 18px;
+    }
+    .detail-stack {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    /* --- live monitor controls --- */
+    .monitor-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .monitor-left, .monitor-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .input {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.18);
+      color: rgba(255,255,255,0.92);
+      outline: none;
+      min-width: 220px;
+    }
+    .input.date {
+      min-width: 0;
+    }
+    .select {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.18);
+      color: rgba(255,255,255,0.92);
+      outline: none;
+    }
+    .mini-pill {
+      font-size: 12px;
+      color: var(--muted);
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pagination-controls button {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.85);
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .pagination-controls button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .pagination-controls span {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* --- NEW: cleaner table readability --- */
+    .table-wrapper { overflow: auto; border-radius: 16px; }
+    #events { width: 100%; border-collapse: separate; border-spacing: 0; }
+    #events thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: rgba(10,10,20,0.92);
+      backdrop-filter: blur(10px);
+      text-align: left;
+      padding: 12px 12px;
+      font-size: 12px;
+      letter-spacing: .02em;
+      color: rgba(255,255,255,0.75);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    #events tbody td {
+      padding: 14px 12px;
+      vertical-align: top;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    #events tbody tr:hover td { background: rgba(255,255,255,0.03); }
+    .no-data { padding: 18px 12px; text-align: center; color: var(--muted); }
+
+    .date-cell { white-space: nowrap; }
+    .email-cell { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .reason-list {
+      margin: 0;
+      padding-left: 16px;
+      color: rgba(255,255,255,0.78);
+    }
+    .reason-list li { margin: 4px 0; }
+    .reason-empty { color: #10b981; }
+
+    .mini-risk-card h3 { margin-bottom: 6px; font-size: 18px; }
+    .mini-risk-card ul { padding-left: 16px; font-size: 13px; }
+    .mini-risk-card li { margin-bottom: 4px; }
+
+    .mini-chart-card canvas { width: 100%; height: 140px; display: block; }
+    .chart-meta { display: flex; justify-content: space-between; gap: 14px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+    .chart-meta strong { display: block; font-size: 18px; color: var(--text); }
+
+    .score-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 999px; font-size: 12px; }
+    .dashboard-footer {
+      margin-top: 36px;
+      padding: 16px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
   </style>
 </head>
+
 <body class="neon-bg">
   <div class="dashboard-shell">
+
     <header class="glass-panel hero-card">
       <div class="hero-copy">
         <div class="logo-badge">
@@ -31,12 +158,15 @@
             <div class="muted" id="user-email">...</div>
           </div>
         </div>
+
         <h1>Personalized Phishing Radar</h1>
         <p>Live telemetry from your mailbox, neon-dipped in cute visuals. Install the extension, open emails, and see the risk feed bloom in real time.</p>
+
         <div class="hero-actions">
           <a id="download" class="btn primary" href="https://chrome.google.com/webstore/detail/YOUR-EXTENSION-ID" target="_blank">Install Extension</a>
           <button class="btn secondary" onclick="logout()">Logout</button>
         </div>
+
         <div class="hero-stat-row">
           <div class="mini-stat">
             <span>Realtime sync</span>
@@ -46,16 +176,6 @@
             <span>Last alert</span>
             <strong id="hero-last-alert">Waiting...</strong>
           </div>
-          <div class="mini-stat openrouter-link">
-            <span>LLM coverage</span>
-            <strong><a href="https://openrouter.ai/keys" target="_blank" rel="noopener">OpenRouter</a></strong>
-          </div>
-        </div>
-      </div>
-      <div class="hero-illustration">
-        <div class="hero-avatar">
-          <img src="public/favicon.png" alt="Mascot" width="90" height="90" style="filter: drop-shadow(0 10px 25px rgba(0,0,0,0.4)); border-radius: 24px; background: rgba(255,255,255,0.08); padding: 16px;">
-          <span class="chip">Realtime sync</span>
         </div>
       </div>
     </header>
@@ -78,7 +198,7 @@
       </div>
     </section>
 
-    <section class="panel-grid">
+    <section class="dashboard-main">
       <div class="glow-card table-card">
         <div class="panel-header">
           <div>
@@ -87,13 +207,36 @@
           </div>
           <span class="chip">Realtime</span>
         </div>
+
+        <div class="monitor-controls">
+          <div class="monitor-left">
+            <input id="event-search" class="input" placeholder="Search sender / subject / reason…" />
+            <select id="event-filter" class="select">
+              <option value="all">All</option>
+              <option value="high">High risk (≥70)</option>
+              <option value="warn">Warning (40–69)</option>
+              <option value="safe">Safe (&lt;40)</option>
+            </select>
+            <input id="start-date" type="date" class="input date" />
+            <span class="mini-pill" id="event-count">0 shown</span>
+          </div>
+          <div class="monitor-right">
+            <button class="btn secondary" id="clear-filters" type="button">Clear</button>
+            <div class="pagination-controls">
+              <button id="prev-page" type="button">‹</button>
+              <span id="page-info">Page 1</span>
+              <button id="next-page" type="button">›</button>
+            </div>
+          </div>
+        </div>
+
         <div class="table-wrapper">
           <table id="events">
             <thead>
               <tr>
-                <th>Date & Time</th>
-                <th>Email ID</th>
-                <th>Phishing Score</th>
+                <th style="min-width: 150px;">Date & Time</th>
+                <th style="min-width: 190px;">Email ID</th>
+                <th style="min-width: 160px;">Phishing Score</th>
                 <th>Reason</th>
               </tr>
             </thead>
@@ -105,101 +248,36 @@
           </table>
         </div>
       </div>
-
-      <div class="insights-grid">
-        <div class="glow-card highlight-card" id="high-risk-card">
-          <span class="chip">🔥 Riskiest email right now</span>
-          <h3 id="high-risk-title">No suspicious email yet</h3>
-          <div class="high-risk-meta" id="high-risk-meta"></div>
-          <ul id="high-risk-indicators"></ul>
-        </div>
-        <div class="glow-card blog-card">
-          <span class="chip">Security Journal</span>
-          <h3>Today's pink alert</h3>
-          <p class="blog-highlight" id="blog-highlight">We haven't spotted anything scary today. ☕️</p>
-          <p>We recap the most worrying trend in your inbox and leave soft reminders:</p>
-          <ul>
-            <li>Double-check domains before tapping cute buttons.</li>
-            <li>Ignore "urgent" payment requests unless verified.</li>
-            <li>Let the extension auto-scan while you sip boba.</li>
-          </ul>
-        </div>
-      </div>
     </section>
 
-    <section class="visual-grid">
-      <div class="glow-card chart-card">
+    <section class="detail-stack">
+      <div class="glow-card highlight-card mini-risk-card" id="high-risk-card">
+        <span class="chip">🔥 Top risk</span>
+        <h3 id="high-risk-title">No suspicious email yet</h3>
+        <div class="high-risk-meta" id="high-risk-meta"></div>
+        <ul id="high-risk-indicators"></ul>
+      </div>
+      <div class="glow-card mini-chart-card">
         <div class="panel-header">
           <div>
-            <h3>Risk trend</h3>
-            <p class="muted">Last 12 scans</p>
+            <h3>Risk pulse</h3>
+            <p class="muted">Last 10 scans</p>
           </div>
-          <span class="chip" id="trend-badge">Idle</span>
         </div>
-        <canvas id="risk-chart" height="200"></canvas>
-      </div>
-      <div class="glow-card meter-card">
-        <div class="panel-header">
+        <canvas id="risk-line-chart" height="140"></canvas>
+        <div class="chart-meta">
           <div>
-            <h3>Live meter</h3>
-            <p class="muted">Average confidence</p>
+            <span>Average risk</span>
+            <strong id="risk-avg">0%</strong>
           </div>
-        </div>
-        <div class="risk-meter">
-          <div id="risk-meter-fill"></div>
-        </div>
-        <div class="risk-meter-info">
-          <strong id="risk-meter-value">0%</strong>
-          <span id="risk-meter-status">Awaiting scans</span>
-        </div>
-        <ul class="activity-feed" id="activity-feed">
-          <li>No events yet</li>
-        </ul>
-      </div>
-      <div class="glow-card keywords-card">
-        <div class="panel-header">
           <div>
-            <h3>Top indicators</h3>
-            <p class="muted">What SuPra flagged recently</p>
+            <span>Latest scan</span>
+            <strong id="risk-latest">0%</strong>
           </div>
-        </div>
-        <div class="badge-grid" id="keyword-badges">
-          <span>Waiting for scans</span>
         </div>
       </div>
     </section>
 
-    <section class="board-story glow-card">
-      <div>
-        <span class="chip">Inbox digest</span>
-        <h3>Daily summary</h3>
-        <p id="board-summary">Open an email with the extension to populate your personalized summary.</p>
-      </div>
-      <div class="board-story-metrics">
-        <div>
-          <span>Top keyword</span>
-          <strong id="board-keyword">None yet</strong>
-        </div>
-        <div>
-          <span>Latest risk</span>
-          <strong id="board-last-score">0%</strong>
-        </div>
-      </div>
-    </section>
-
-    <section class="glow-card tutorial-card">
-      <div>
-        <span class="chip">Need to wire up the Chrome extension?</span>
-        <h3>Drop your OpenRouter API key into the extension in 3 steps</h3>
-        <p class="muted">Follow the mini tutorial to pull the sample code, paste your key, and reload the extension so you get instant insights from the models we use on the backend.</p>
-      </div>
-      <ol>
-        <li>Visit the OpenRouter setup snippet and copy the <code>const OPENROUTER_KEY = "";</code> block.</li>
-        <li>Open the extension’s <code>firebase-config.js</code> (or settings modal) and paste your key between the quotes.</li>
-        <li>Reload the extension in Chrome (chrome://extensions → Reload) and open an email to confirm alerts appear.</li>
-      </ol>
-      <a class="btn secondary" href="https://openrouter.ai/docs/quick-start" target="_blank" rel="noopener">Open OpenRouter tutorial ↗</a>
-    </section>
   </div>
 
   <script type="module">
@@ -213,42 +291,185 @@
     const highRiskTitle = document.getElementById('high-risk-title');
     const highRiskMeta = document.getElementById('high-risk-meta');
     const highRiskIndicators = document.getElementById('high-risk-indicators');
-    const blogHighlight = document.getElementById('blog-highlight');
-    const riskChartCanvas = document.getElementById('risk-chart');
-    const riskMeterFill = document.getElementById('risk-meter-fill');
-    const riskMeterValue = document.getElementById('risk-meter-value');
-    const riskMeterStatus = document.getElementById('risk-meter-status');
-    const keywordBadges = document.getElementById('keyword-badges');
-    const activityFeed = document.getElementById('activity-feed');
-    const trendBadge = document.getElementById('trend-badge');
-    const boardSummary = document.getElementById('board-summary');
-    const boardKeyword = document.getElementById('board-keyword');
-    const boardLastScore = document.getElementById('board-last-score');
     const heroLastAlert = document.getElementById('hero-last-alert');
+
+    // NEW: small interactive controls
+    const searchInput = document.getElementById('event-search');
+    const filterSelect = document.getElementById('event-filter');
+    const clearBtn = document.getElementById('clear-filters');
+    const eventCount = document.getElementById('event-count');
+    const riskChartCanvas = document.getElementById('risk-line-chart');
+    const riskAvgEl = document.getElementById('risk-avg');
+    const riskLatestEl = document.getElementById('risk-latest');
+    const startDateInput = document.getElementById('start-date');
+    const endDateInput = null;
+    const prevBtn = document.getElementById('prev-page');
+    const nextBtn = document.getElementById('next-page');
+    const pageInfo = document.getElementById('page-info');
+    const whitelistUsersListEl = document.getElementById('trusted-users-list');
+    const whitelistUsersEmptyEl = document.getElementById('trusted-users-empty');
+    const whitelistDomainsListEl = document.getElementById('trusted-domains-list');
+    const whitelistDomainsEmptyEl = document.getElementById('trusted-domains-empty');
+    const whitelistStatusEl = document.getElementById('trusted-status');
+    const whitelistRefreshBtn = document.getElementById('refresh-trusted');
+    const whitelistCardEl = document.querySelector('.whitelist-card');
+    const chromeStorageAvailable = typeof chrome !== 'undefined' && chrome?.storage?.local?.set;
+
     let unsubscribeEvents = null;
+    let unsubscribeTrusted = null;
+    let allEntries = []; // keep latest snapshot here for filtering
+    let filteredEntries = [];
+    let currentPage = 1;
+    const pageSize = 5;
+    let trustedEntries = [];
+
+    const toTitleCase = (name = '') => name.replace(/\b\w+/g, part => part.charAt(0).toUpperCase() + part.slice(1));
+    const deriveNameFromEmail = (email = '') => {
+      if (typeof email !== 'string') return 'Friend';
+      const local = email.split('@')[0] || email;
+      return toTitleCase(local.replace(/[._-]+/g, ' ').trim() || local);
+    };
+    const resolveDisplayName = (user, profileName) => {
+      if (profileName && profileName.trim().length > 1) return toTitleCase(profileName.trim());
+      if (user?.displayName) return user.displayName;
+      return deriveNameFromEmail(user?.email || '');
+    };
 
     const renderEmptyState = () => {
       tbody.innerHTML = '<tr><td colspan="4" class="no-data">No email analyses yet. Install the extension and open some emails!</td></tr>';
       updateStats([]);
       updateHighRisk([]);
-      updateVisualizations([]);
-      if (boardSummary) boardSummary.textContent = 'Open an email with the extension to populate your personalized summary.';
-      if (boardKeyword) boardKeyword.textContent = 'None yet';
-      if (boardLastScore) boardLastScore.textContent = '0%';
+      updateRiskChart([]);
       if (heroLastAlert) heroLastAlert.textContent = 'Waiting...';
+      if (eventCount) eventCount.textContent = '0 of 0 shown';
+      if (pageInfo) pageInfo.textContent = 'Page 1 of 1';
+      prevBtn?.setAttribute('disabled', 'disabled');
+      nextBtn?.setAttribute('disabled', 'disabled');
+      filteredEntries = [];
+      currentPage = 1;
     };
 
     const getTimestampValue = (rawTimestamp) => {
-      if (typeof rawTimestamp === 'object' && rawTimestamp?.seconds) {
-        return rawTimestamp.seconds * 1000;
-      }
-      if (typeof rawTimestamp === 'string') {
-        return Number(rawTimestamp);
-      }
-      if (typeof rawTimestamp === 'number') {
-        return rawTimestamp;
-      }
+      if (typeof rawTimestamp === 'object' && rawTimestamp?.seconds) return rawTimestamp.seconds * 1000;
+      if (typeof rawTimestamp === 'string') return Number(rawTimestamp);
+      if (typeof rawTimestamp === 'number') return rawTimestamp;
       return Date.now();
+    };
+
+    const scoreBucket = (entry) => {
+      const score = entry.score ?? entry.confidence ?? 0;
+      if (entry.isPhishing || score >= 70) return 'high';
+      if (score >= 40) return 'warn';
+      return 'safe';
+    };
+
+    const applyFiltersAndRender = () => {
+      const q = (searchInput?.value || '').trim().toLowerCase();
+      const bucket = filterSelect?.value || 'all';
+      let dayStart = null;
+      let dayEnd = null;
+      if (startDateInput?.value) {
+        dayStart = new Date(startDateInput.value);
+        dayStart.setHours(0, 0, 0, 0);
+        dayEnd = new Date(dayStart);
+        dayEnd.setDate(dayEnd.getDate() + 1);
+      }
+
+      const filtered = allEntries.filter(e => {
+        const s = bucket === 'all' ? true : scoreBucket(e) === bucket;
+        if (!s) return false;
+
+        if (dayStart && dayEnd) {
+          const t = getTimestampValue(e.timestamp);
+          if (t < dayStart.getTime() || t >= dayEnd.getTime()) return false;
+        }
+
+        if (!q) return true;
+
+        const from = (e.from || e.user || '').toLowerCase();
+        const subject = (e.subject || '').toLowerCase();
+        const reasons = (e.reasons || e.indicators || []).join(' ').toLowerCase();
+
+        return from.includes(q) || subject.includes(q) || reasons.includes(q);
+      });
+
+      filteredEntries = filtered;
+      currentPage = 1;
+      renderCurrentPage();
+    };
+
+    const renderTable = (entries) => {
+      if (!entries.length) {
+        const noDataMsg = startDateInput?.value
+          ? 'No emails opened on this date.'
+          : 'No matching events.';
+        tbody.innerHTML = `<tr><td colspan="4" class="no-data">${noDataMsg}</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = "";
+      entries.forEach(d => {
+        const dateTime = new Date(getTimestampValue(d.timestamp)).toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        const emailId = d.from || d.user || "Unknown";
+        const score = d.score ?? d.confidence ?? 0;
+        const isPhishing = d.isPhishing ?? (score >= 50);
+
+        let scoreClass = 'score-safe';
+        let scoreText = `${score}% · Safe`;
+
+        if (isPhishing || score >= 70) {
+          scoreClass = 'score-danger';
+          scoreText = `${score}% · Phishing`;
+        } else if (score >= 40) {
+          scoreClass = 'score-warning';
+          scoreText = `${score}% · Warning`;
+        }
+
+        const reasons = d.reasons || d.indicators || [];
+        const reasonsHtml = reasons.length > 0
+          ? `<ul class="reason-list">${reasons.map(r => `<li>${r}</li>`).join("")}</ul>`
+          : `<span class="reason-empty">No suspicious indicators found</span>`;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="date-cell">${dateTime}</td>
+          <td class="email-cell" title="${emailId}">${emailId}</td>
+          <td><span class="score-badge ${scoreClass}">${scoreText}</span></td>
+          <td>${reasonsHtml}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    };
+
+    const renderCurrentPage = () => {
+      const total = filteredEntries.length;
+      const startIndex = (currentPage - 1) * pageSize;
+      const pageEntries = filteredEntries.slice(startIndex, startIndex + pageSize);
+      renderTable(pageEntries);
+      const showing = pageEntries.length;
+      if (eventCount) eventCount.textContent = `${showing} of ${total} shown`;
+      updatePagination(total);
+    };
+
+    const updatePagination = (total) => {
+      if (total === 0) {
+        if (pageInfo) pageInfo.textContent = 'Page 1 of 1';
+        if (prevBtn) prevBtn.disabled = true;
+        if (nextBtn) nextBtn.disabled = true;
+        return;
+      }
+      const totalPages = Math.max(1, Math.ceil(total / pageSize));
+      currentPage = Math.min(currentPage, totalPages);
+      if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+      if (prevBtn) prevBtn.disabled = currentPage <= 1;
+      if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
     };
 
     const subscribeToUserEvents = (userEmail) => {
@@ -257,9 +478,7 @@
         return;
       }
 
-      if (unsubscribeEvents) {
-        unsubscribeEvents();
-      }
+      if (unsubscribeEvents) unsubscribeEvents();
 
       const eventsQuery = query(
         collection(db, "emailEvents"),
@@ -268,65 +487,57 @@
 
       unsubscribeEvents = onSnapshot(eventsQuery, (snap) => {
         if (snap.empty) {
+          allEntries = [];
           renderEmptyState();
           return;
         }
 
-        tbody.innerHTML = "";
         const docs = snap.docs.slice().sort((a, b) => {
           const aTime = getTimestampValue(a.data().timestamp);
           const bTime = getTimestampValue(b.data().timestamp);
           return bTime - aTime;
         });
 
-        docs.forEach(doc => {
-          const d = doc.data();
+        allEntries = docs.map(doc => doc.data());
 
-          const dateTime = new Date(getTimestampValue(d.timestamp)).toLocaleString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          });
+        // render using filters (default: all)
+        applyFiltersAndRender();
 
-          const emailId = d.from || d.user || "Unknown";
-          const score = d.score ?? d.confidence ?? 0;
-          const isPhishing = d.isPhishing ?? (score >= 50);
+        updateStats(allEntries);
+        updateHighRisk(allEntries);
+        updateRiskChart(allEntries);
 
-          let scoreClass = 'score-safe';
-          let scoreText = `${score}% - Safe`;
-
-          if (isPhishing || score >= 70) {
-            scoreClass = 'score-danger';
-            scoreText = `${score}% - Phishing`;
-          } else if (score >= 40) {
-            scoreClass = 'score-warning';
-            scoreText = `${score}% - Warning`;
-          }
-
-          const reasons = d.reasons || d.indicators || [];
-          const reasonsHtml = reasons.length > 0 
-            ? `<ul class="reason-list">${reasons.map(r => `<li>${r}</li>`).join("")}</ul>`
-            : `<span style="color: #10b981;">No suspicious indicators found</span>`;
-
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${dateTime}</td>
-            <td>${emailId}</td>
-            <td><span class="score-badge ${scoreClass}">${scoreText}</span></td>
-            <td>${reasonsHtml}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-
-        const entryData = docs.map(doc => doc.data());
-        updateStats(entryData);
-        updateHighRisk(entryData);
-        updateVisualizations(entryData);
       }, (error) => {
         console.error('Error loading email events:', error);
         renderEmptyState();
+      });
+    };
+
+    const subscribeTrustedSenders = (userEmail) => {
+      if (unsubscribeTrusted) {
+        unsubscribeTrusted();
+        unsubscribeTrusted = null;
+      }
+      if (!userEmail) {
+        applyTrustedEntries([]);
+        handleTrustedStatus('');
+        return;
+      }
+      const trustedQuery = query(
+        collection(db, 'trustedSenders'),
+        where('user', '==', userEmail)
+      );
+      unsubscribeTrusted = onSnapshot(trustedQuery, (snapshot) => {
+        const entries = snapshot.docs.map(docSnap => ({
+          id: docSnap.id,
+          ...docSnap.data()
+        }));
+        applyTrustedEntries(entries);
+        handleTrustedStatus('');
+      }, (error) => {
+        console.error('Error loading trusted senders:', error);
+        applyTrustedEntries([]);
+        handleTrustedStatus('Unable to load trusted senders.');
       });
     };
 
@@ -348,7 +559,7 @@
         highRiskTitle.textContent = 'No suspicious email yet';
         highRiskMeta.innerHTML = '';
         highRiskIndicators.innerHTML = '';
-        blogHighlight.textContent = 'We haven\'t spotted anything scary today. ☕️';
+        if (heroLastAlert) heroLastAlert.textContent = 'Waiting...';
         return;
       }
 
@@ -368,58 +579,51 @@
       `;
 
       const reasons = riskiest.reasons || riskiest.indicators || [];
-      if (reasons.length) {
-        highRiskIndicators.innerHTML = reasons.slice(0, 4).map(r => `<li>${r}</li>`).join('');
-      } else {
-        highRiskIndicators.innerHTML = '<li>No extra indicators logged.</li>';
-      }
+      highRiskIndicators.innerHTML = reasons.length
+        ? reasons.slice(0, 6).map(r => `<li>${r}</li>`).join('')
+        : '<li>No extra indicators logged.</li>';
 
-      const summaryText = `Your highest risk email "${riskiest.subject || 'Unknown'}" from ${riskiest.from || 'unknown sender'} scored ${score}%.`;
-      if (boardSummary) {
-        boardSummary.textContent = summaryText;
+      if (heroLastAlert) {
+        heroLastAlert.textContent = new Date(getTimestampValue(riskiest.timestamp)).toLocaleTimeString();
       }
-
-      blogHighlight.textContent = `Top risk: "${riskiest.subject || 'Unknown'}" tried to lure you with ${reasons[0] || 'generic urgency'}. Keep your guard up!`;
     };
 
-    const updateVisualizations = (entries) => {
-      drawRiskTrend(entries);
-      updateRiskMeter(entries);
-      updateKeywordBadges(entries);
-      updateActivity(entries);
-    };
-
-    const drawRiskTrend = (entries) => {
+    const updateRiskChart = (entries) => {
       if (!riskChartCanvas) return;
       const ctx = riskChartCanvas.getContext('2d');
       const ratio = window.devicePixelRatio || 1;
       const width = riskChartCanvas.clientWidth || 300;
-      const height = 200;
+      const height = riskChartCanvas.clientHeight || 140;
       riskChartCanvas.width = width * ratio;
       riskChartCanvas.height = height * ratio;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.clearRect(0, 0, riskChartCanvas.width, riskChartCanvas.height);
       ctx.scale(ratio, ratio);
+      ctx.clearRect(0, 0, width, height);
 
       if (!entries.length) {
-        trendBadge.textContent = 'Idle';
+        if (riskAvgEl) riskAvgEl.textContent = '0%';
+        if (riskLatestEl) riskLatestEl.textContent = '0%';
         return;
       }
 
-      const values = entries.slice(0, 12).map(d => d.score ?? d.confidence ?? 0).reverse();
-      const maxVal = 100;
+      const values = entries.slice(0, 10).map(d => d.score ?? d.confidence ?? 0).reverse();
+      const avg = Math.round(values.reduce((sum, v) => sum + v, 0) / values.length);
+      const latest = values[values.length - 1] ?? 0;
+      if (riskAvgEl) riskAvgEl.textContent = `${avg}%`;
+      if (riskLatestEl) riskLatestEl.textContent = `${latest}%`;
+
+      const stepX = values.length > 1 ? width / (values.length - 1) : width;
       ctx.beginPath();
       ctx.lineWidth = 2;
       const gradient = ctx.createLinearGradient(0, 0, width, 0);
       gradient.addColorStop(0, '#ff6ace');
       gradient.addColorStop(1, '#8b5cf6');
       ctx.strokeStyle = gradient;
-      ctx.fillStyle = 'rgba(255, 106, 206, 0.1)';
+      ctx.fillStyle = 'rgba(255,106,206,0.08)';
 
-      const stepX = values.length > 1 ? width / (values.length - 1) : width;
       values.forEach((value, index) => {
         const x = index * stepX;
-        const y = height - (value / maxVal) * height;
+        const y = height - (value / 100) * height;
         if (index === 0) {
           ctx.moveTo(x, y);
         } else {
@@ -432,138 +636,145 @@
       ctx.lineTo(0, height);
       ctx.closePath();
       ctx.fill();
+    };
 
-      const last = values[values.length - 1];
-      if (trendBadge) {
-        if (last >= 70) {
-          trendBadge.textContent = 'Hot';
-        } else if (last >= 40) {
-          trendBadge.textContent = 'Watch';
-        } else {
-          trendBadge.textContent = 'Calm';
+    const renderTrustedSenders = (entries = []) => {
+      if (!whitelistUsersListEl || !whitelistDomainsListEl) return;
+      const userEntries = entries.filter(entry => entry.type !== 'domain');
+      const domainEntries = entries.filter(entry => entry.type === 'domain');
+
+      const renderSection = (sectionEntries, listEl, emptyEl) => {
+        if (!listEl || !emptyEl) return;
+        listEl.innerHTML = '';
+        if (!sectionEntries.length) {
+          emptyEl.classList.remove('hidden');
+          return;
         }
-      }
-    };
-
-    const updateRiskMeter = (entries) => {
-      if (!riskMeterFill) return;
-      if (!entries.length) {
-        riskMeterFill.style.width = '0%';
-        riskMeterValue.textContent = '0% avg risk';
-        riskMeterStatus.textContent = 'Awaiting scans';
-        return;
-      }
-      const values = entries.map(d => d.score ?? d.confidence ?? 0);
-      const avg = Math.round(values.reduce((sum, v) => sum + v, 0) / values.length);
-      riskMeterFill.style.width = `${avg}%`;
-      riskMeterValue.textContent = `${avg}% avg risk`;
-      let status = 'Calm vibes';
-      if (avg >= 70) {
-        status = 'High alert';
-      } else if (avg >= 40) {
-        status = 'Stay cautious';
-      }
-      riskMeterStatus.textContent = status;
-    };
-
-    const updateKeywordBadges = (entries) => {
-      if (!keywordBadges) return;
-      if (!entries.length) {
-        keywordBadges.innerHTML = '<span>Waiting for scans</span>';
-        return;
-      }
-      const freq = {};
-      entries.forEach(entry => {
-        (entry.reasons || entry.indicators || []).forEach(reason => {
-          const key = reason.trim();
-          if (key) {
-            freq[key] = (freq[key] || 0) + 1;
-          }
-        });
-      });
-      const top = Object.entries(freq)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
-      if (!top.length) {
-        keywordBadges.innerHTML = '<span>No indicators yet</span>';
-        if (boardKeyword) boardKeyword.textContent = 'None yet';
-        return;
-      }
-      keywordBadges.innerHTML = top
-        .map(([text, count]) => `<span>${text} (${count})</span>`)
-        .join('');
-      if (boardKeyword) {
-        boardKeyword.textContent = top[0][0];
-      }
-    };
-
-    const updateActivity = (entries) => {
-      if (!activityFeed) return;
-      if (!entries.length) {
-        activityFeed.innerHTML = '<li>No events yet</li>';
-        return;
-      }
-      const latest = entries.slice(0, 4);
-      activityFeed.innerHTML = latest.map(entry => {
-        const score = entry.score ?? entry.confidence ?? 0;
-        const isRisk = entry.isPhishing || score >= 70;
-        const sender = entry.from || entry.user || 'Unknown';
-        const subject = entry.subject || 'Untitled';
-        return `
-          <li>
-            <span class="feed-dot ${isRisk ? 'risky' : 'safe'}"></span>
-            <div>
-              <strong>${subject}</strong> · ${score}%
-              <div class="muted">from ${sender}</div>
+        emptyEl.classList.add('hidden');
+        sectionEntries.forEach(entry => {
+          const li = document.createElement('li');
+          li.className = 'trusted-item';
+          const label = entry.type === 'domain' ? `*@${entry.value}` : entry.value;
+          const typeLabel = entry.type === 'domain' ? 'Domain' : 'Email';
+          li.innerHTML = `
+            <div class="trusted-meta">
+              <strong>${label}</strong>
+              <span>${typeLabel}</span>
             </div>
-          </li>
-        `;
-      }).join('');
-      if (boardLastScore) {
-        const first = entries[0];
-        const score = first ? (first.score ?? first.confidence ?? 0) : 0;
-        boardLastScore.textContent = `${score}%`;
-      }
-      if (heroLastAlert) {
-        const first = entries[0];
-        heroLastAlert.textContent = first ? new Date(getTimestampValue(first.timestamp)).toLocaleTimeString() : 'Waiting...';
+            <button class="trusted-remove" type="button" data-id="${entry.id}">Remove</button>
+          `;
+          listEl.appendChild(li);
+        });
+      };
+
+      renderSection(userEntries, whitelistUsersListEl, whitelistUsersEmptyEl);
+      renderSection(domainEntries, whitelistDomainsListEl, whitelistDomainsEmptyEl);
+    };
+
+    const syncTrustedToExtension = (entries = []) => {
+      if (!chromeStorageAvailable) return;
+      const compact = entries.map(entry => ({
+        id: entry.id,
+        type: entry.type || 'email',
+        value: entry.value || ''
+      }));
+      chrome.storage.local.set({ trustedSenders: compact }, () => {});
+    };
+
+    const applyTrustedEntries = (entries = []) => {
+      trustedEntries = entries;
+      renderTrustedSenders(entries);
+      syncTrustedToExtension(entries);
+    };
+
+    const handleTrustedStatus = (message) => {
+      if (whitelistStatusEl) {
+        whitelistStatusEl.textContent = message || '';
       }
     };
 
-    // Check if user is logged in and display their info
+    const removeTrustedSender = async (id) => {
+      if (!id) return;
+      try {
+        await deleteDoc(doc(db, 'trustedSenders', id));
+        handleTrustedStatus('Removed trusted sender.');
+      } catch (error) {
+        console.error('Failed to remove trusted sender:', error);
+        handleTrustedStatus('Error removing sender. Try again.');
+      }
+    };
+
+    whitelistRefreshBtn?.addEventListener('click', () => {
+      renderTrustedSenders(trustedEntries);
+      handleTrustedStatus('Trusted senders refreshed.');
+    });
+
+    whitelistCardEl?.addEventListener('click', (event) => {
+      if (!event.target.closest) return;
+      const button = event.target.closest('button[data-id]');
+      if (!button) return;
+      const { id } = button.dataset;
+      if (id) {
+        removeTrustedSender(id);
+      }
+    });
+
+    // hook up interactive controls
+    searchInput?.addEventListener('input', applyFiltersAndRender);
+    filterSelect?.addEventListener('change', applyFiltersAndRender);
+    startDateInput?.addEventListener('change', applyFiltersAndRender);
+    prevBtn?.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage -= 1;
+        renderCurrentPage();
+      }
+    });
+    nextBtn?.addEventListener('click', () => {
+      const totalPages = Math.ceil(filteredEntries.length / pageSize);
+      if (currentPage < totalPages) {
+        currentPage += 1;
+        renderCurrentPage();
+      }
+    });
+    clearBtn?.addEventListener('click', () => {
+      searchInput.value = '';
+      filterSelect.value = 'all';
+      if (startDateInput) startDateInput.value = '';
+      applyFiltersAndRender();
+    });
+
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Get user's name from Firestore
         try {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            document.getElementById('user-name').textContent = `Welcome, ${userData.name}!`;
-            document.getElementById('user-email').textContent = user.email;
-          } else {
-            // Fallback if no name is stored
-            document.getElementById('user-name').textContent = `Welcome!`;
-            document.getElementById('user-email').textContent = user.email;
-          }
+          const profileName = userDoc.exists() ? userDoc.data()?.name : '';
+          const displayName = resolveDisplayName(user, profileName);
+          document.getElementById('user-name').textContent = `Welcome, ${displayName}!`;
+          document.getElementById('user-email').textContent = user.email;
         } catch (error) {
           console.error('Error fetching user data:', error);
-          document.getElementById('user-name').textContent = `Welcome!`;
+          const fallbackName = resolveDisplayName(user);
+          document.getElementById('user-name').textContent = `Welcome, ${fallbackName}!`;
           document.getElementById('user-email').textContent = user.email;
         }
-        console.log('Logged in user:', user);
 
         subscribeToUserEvents(user.email);
+        subscribeTrustedSenders(user.email);
       } else {
-        // Redirect to login if not authenticated
         if (unsubscribeEvents) {
           unsubscribeEvents();
           unsubscribeEvents = null;
         }
+        if (unsubscribeTrusted) {
+          unsubscribeTrusted();
+          unsubscribeTrusted = null;
+        }
+        applyTrustedEntries([]);
+        handleTrustedStatus('');
         window.location.href = 'login.html';
       }
     });
 
-    // Logout function
     window.logout = async () => {
       try {
         await signOut(auth);
@@ -573,6 +784,8 @@
         alert('Error logging out. Please try again.');
       }
     };
+    const footerYearEl = document.getElementById('footer-year');
+    if (footerYearEl) footerYearEl.textContent = new Date().getFullYear();
   </script>
 </body>
 </html>

@@ -5,9 +5,33 @@ let scanButton = null;
 let resultBanner = null;
 let toastContainer = null;
 let lastScannedKey = null;
+let autoScanObserver = null;
+let authReady = false;
 
-// Initialize
-initialize();
+checkAuthAndInitialize();
+
+function checkAuthAndInitialize() {
+  chrome.storage.local.get('authUser', ({ authUser }) => {
+    handleAuthState(authUser);
+  });
+
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && Object.prototype.hasOwnProperty.call(changes, 'authUser')) {
+      handleAuthState(changes.authUser.newValue);
+    }
+  });
+}
+
+function handleAuthState(authUser) {
+  const isValid = authUser && (!authUser.expiresAt || authUser.expiresAt > Date.now());
+  if (isValid && !authReady) {
+    authReady = true;
+    initialize();
+  } else if (!isValid && authReady) {
+    authReady = false;
+    teardownContentScript();
+  }
+}
 
 function initialize() {
   emailService = detectPlatform();
@@ -147,7 +171,11 @@ function generateEmailKey(emailData) {
 
 // Start auto-scan observer
 function startAutoScan() {
-  const observer = new MutationObserver(() => {
+  if (autoScanObserver) {
+    autoScanObserver.disconnect();
+  }
+
+  autoScanObserver = new MutationObserver(() => {
     try {
       const emailData = extractEmailData();
       
@@ -207,7 +235,7 @@ function startAutoScan() {
     }
   });
 
-  observer.observe(document.body, {
+  autoScanObserver.observe(document.body, {
     childList: true,
     subtree: true
   });
@@ -418,6 +446,13 @@ function removeResultBanner() {
   }
 }
 
+function removeScanButton() {
+  if (scanButton && scanButton.parentElement) {
+    scanButton.remove();
+  }
+  scanButton = null;
+}
+
 function ensureToastContainer() {
   if (toastContainer && document.body.contains(toastContainer)) {
     return toastContainer;
@@ -429,6 +464,20 @@ function ensureToastContainer() {
   toastContainer.className = 'phishing-toast-container';
   document.body.appendChild(toastContainer);
   return toastContainer;
+}
+
+function teardownContentScript() {
+  if (autoScanObserver) {
+    autoScanObserver.disconnect();
+    autoScanObserver = null;
+  }
+  removeResultBanner();
+  removeScanButton();
+  if (toastContainer && toastContainer.parentElement) {
+    toastContainer.remove();
+  }
+  toastContainer = null;
+  lastScannedKey = null;
 }
 
 // Escape HTML

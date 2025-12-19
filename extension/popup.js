@@ -2,7 +2,23 @@
 
 document.addEventListener('DOMContentLoaded', init);
 
-let cachedApiKey = '';
+const FIREBASE_API_KEY = 'AIzaSyBjtmGy5tF6fGE3aDjeiiDLp9ssX0K5SOU';
+const EMBEDDED_OR_KEY = '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';
+const DEFAULT_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
+const AUTH_STORAGE_KEY = 'authUser';
+const USER_EMAIL_MAP_KEY = 'dashboardEmails';
+let currentAuthUser = null;
+let appListenersBound = false;
+
+async function init() {
+  bindAuthUI();
+  const authUser = await getAuthUser();
+  if (authUser) {
+    await unlockApp(authUser);
+  } else {
+    lockApp();
+  }
+}
 
 const maskApiKey = (value) => {
   if (!value) return '';
@@ -12,40 +28,172 @@ const maskApiKey = (value) => {
   return `${'•'.repeat(Math.max(0, value.length - 4))}${value.slice(-4)}`;
 };
 
-function showApiKeySummary(keyValue) {
+function updateManagedKeyChip() {
   const summary = document.getElementById('api-key-summary');
-  cachedApiKey = keyValue || '';
   if (!summary) return;
-  if (keyValue) {
-    summary.innerHTML = `<strong>API key stored</strong><div>${maskApiKey(keyValue)}</div>`;
-    summary.classList.remove('hidden');
-  } else {
-    summary.classList.add('hidden');
-    summary.textContent = '';
+  const masked = maskApiKey(EMBEDDED_OR_KEY);
+  summary.innerHTML = `<strong>Managed key active</strong><div>${masked}</div>`;
+}
+
+async function ensureManagedKeyStored() {
+  const { or_api_key } = await chrome.storage.local.get('or_api_key');
+  if (or_api_key !== EMBEDDED_OR_KEY) {
+    await chrome.storage.local.set({ or_api_key: EMBEDDED_OR_KEY });
   }
 }
 
-function setConfigCollapsed(collapsed) {
-  const configContent = document.getElementById('config-content');
-  const configToggle = document.getElementById('config-toggle');
-  const apiKeyEl = document.getElementById('apiKey');
-  if (!configContent || !configToggle) return;
-  if (collapsed) {
-    configContent.classList.add('collapsed');
-    configToggle.textContent = 'Edit secure settings';
-    if (apiKeyEl) {
-      apiKeyEl.value = '';
-    }
-  } else {
-    configContent.classList.remove('collapsed');
-    configToggle.textContent = 'Hide secure settings';
-    if (apiKeyEl) {
-      apiKeyEl.value = cachedApiKey;
-    }
+async function saveDashboardEmailPreference(ownerEmail, emailValue) {
+  if (!ownerEmail) return;
+  const data = await chrome.storage.local.get(USER_EMAIL_MAP_KEY);
+  const map = data[USER_EMAIL_MAP_KEY] || {};
+  map[ownerEmail] = emailValue;
+  await chrome.storage.local.set({
+    [USER_EMAIL_MAP_KEY]: map,
+    userEmail: emailValue
+  });
+}
+
+function bindAuthUI() {
+  const authForm = document.getElementById('auth-form');
+  const authButton = document.getElementById('auth-login');
+  if (authForm) {
+    authForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      handleAuthLogin();
+    });
+  }
+  if (authButton) {
+    authButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      handleAuthLogin();
+    });
+  }
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', handleLogout);
   }
 }
 
-async function init() {
+function lockApp() {
+  const authWall = document.getElementById('auth-wall');
+  const appContainer = document.getElementById('app-container');
+  if (authWall) authWall.classList.remove('hidden');
+  if (appContainer) appContainer.classList.add('hidden');
+}
+
+async function unlockApp(authUser) {
+  currentAuthUser = authUser;
+  await ensureManagedKeyStored();
+  updateManagedKeyChip();
+  const authWall = document.getElementById('auth-wall');
+  const appContainer = document.getElementById('app-container');
+  const emailTarget = document.getElementById('auth-user-email');
+  if (authWall) authWall.classList.add('hidden');
+  if (appContainer) appContainer.classList.remove('hidden');
+  if (emailTarget) emailTarget.textContent = authUser.email || 'Unknown user';
+
+  if (!appListenersBound) {
+    bindAppListeners();
+    appListenersBound = true;
+  }
+
+  await loadAppState();
+}
+
+async function getAuthUser() {
+  const data = await chrome.storage.local.get(AUTH_STORAGE_KEY);
+  const user = data[AUTH_STORAGE_KEY];
+  if (!user) return null;
+  if (user.expiresAt && Date.now() > user.expiresAt) {
+    await chrome.storage.local.remove(AUTH_STORAGE_KEY);
+    return null;
+  }
+  return user;
+}
+
+async function handleAuthLogin() {
+  const emailEl = document.getElementById('auth-email');
+  const passwordEl = document.getElementById('auth-password');
+  if (!emailEl || !passwordEl) return;
+  const email = emailEl.value.trim();
+  const password = passwordEl.value.trim();
+
+  if (!isValidEmail(email)) {
+    showStatus('auth-status', 'Enter the email you used on the dashboard', 'error');
+    return;
+  }
+  if (!password) {
+    showStatus('auth-status', 'Password is required', 'error');
+    return;
+  }
+
+  try {
+    showStatus('auth-status', 'Signing in...', 'info');
+    const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, returnSecureToken: true })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error?.message || 'Authentication failed');
+    }
+
+    const expiresInMs = (parseInt(data.expiresIn, 10) || 3600) * 1000;
+    const authRecord = {
+      email: data.email,
+      localId: data.localId,
+      idToken: data.idToken,
+      refreshToken: data.refreshToken,
+      expiresAt: Date.now() + expiresInMs
+    };
+    await chrome.storage.local.set({ [AUTH_STORAGE_KEY]: authRecord });
+    await saveDashboardEmailPreference(data.email, data.email);
+    showStatus('auth-status', '✓ Login successful', 'success');
+    await unlockApp(authRecord);
+  } catch (error) {
+    console.error('Auth error:', error);
+    showStatus('auth-status', error.message || 'Unable to sign in', 'error');
+  }
+}
+
+async function handleLogout() {
+  await chrome.storage.local.remove(AUTH_STORAGE_KEY);
+  currentAuthUser = null;
+  lockApp();
+  showStatus('auth-status', 'You have been logged out.', 'info');
+}
+
+function bindAppListeners() {
+  document.getElementById('scan-btn')?.addEventListener('click', scanEmail);
+  const firebaseToggle = document.getElementById('firebase-toggle');
+  const userEmailEl = document.getElementById('user-email');
+  const emailGroup = document.getElementById('email-group');
+  if (firebaseToggle) {
+    firebaseToggle.addEventListener('change', (e) => {
+      const checked = e.target.checked;
+      if (emailGroup) {
+        emailGroup.classList.toggle('hidden', !checked);
+      }
+      if (checked && userEmailEl && !userEmailEl.value) {
+        userEmailEl.value = currentAuthUser?.email || '';
+        showStatus('firebase-status', 'Please confirm the email for dashboard sync', 'info');
+      }
+      const emailToSave = userEmailEl?.value || currentAuthUser?.email || '';
+      persistIntegrationSettings(checked, emailToSave);
+    });
+  }
+  if (userEmailEl) {
+    userEmailEl.addEventListener('blur', () => {
+      const firebaseEnabled = firebaseToggle?.checked ?? false;
+      if (!firebaseEnabled) return;
+      persistIntegrationSettings(true, userEmailEl.value || currentAuthUser?.email || '');
+    });
+  }
+}
+
+async function loadAppState() {
   // Load saved settings
   const stored = await chrome.storage.local.get([
     'or_api_key', 
@@ -53,35 +201,17 @@ async function init() {
     'or_model', 
     'user_threshold',
     'firebaseEnabled',
-    'userEmail'
+    'userEmail',
+    USER_EMAIL_MAP_KEY
   ]);
   
-  // Populate form fields
-  const apiKeyEl = document.getElementById('apiKey');
-  const endpointEl = document.getElementById('endpoint');
-  const modelEl = document.getElementById('model');
-  const thresholdEl = document.getElementById('threshold');
+  await ensureManagedKeyStored();
+  updateManagedKeyChip();
+  
+  // Firebase settings
   const firebaseToggle = document.getElementById('firebase-toggle');
   const userEmailEl = document.getElementById('user-email');
   const emailGroup = document.getElementById('email-group');
-  const configToggle = document.getElementById('config-toggle');
-  if (configToggle) {
-    configToggle.addEventListener('click', () => {
-      const configContent = document.getElementById('config-content');
-      const collapsed = configContent?.classList.contains('collapsed');
-      setConfigCollapsed(!collapsed);
-    });
-  }
-  
-  if (stored.or_api_key) {
-    apiKeyEl.value = stored.or_api_key;
-    showStatus('key-status', 'API key configured', 'success');
-  }
-  endpointEl.value = stored.or_endpoint || 'https://openrouter.ai/api/v1/chat/completions';
-  modelEl.value = stored.or_model || 'meta-llama/llama-3.2-3b-instruct:free';
-  thresholdEl.value = stored.user_threshold || 50;
-  
-  // Firebase settings
   if (firebaseToggle) {
     firebaseToggle.checked = stored.firebaseEnabled || false;
     if (emailGroup) {
@@ -90,104 +220,56 @@ async function init() {
   }
   
   if (userEmailEl) {
-    userEmailEl.value = stored.userEmail || '';
+    const emailMap = stored[USER_EMAIL_MAP_KEY] || {};
+    const preferred = emailMap[currentAuthUser?.email] || stored.userEmail || currentAuthUser?.email || '';
+    userEmailEl.value = preferred;
   }
-  
-  showApiKeySummary(stored.or_api_key);
-  setConfigCollapsed(Boolean(stored.or_api_key));
-  
-  // Load last analysis result if available
-  loadLastResult();
-  
-  // Event listeners
-  document.getElementById('save').addEventListener('click', saveSettings);
-  document.getElementById('clear').addEventListener('click', clearApiKey);
-  document.getElementById('scan-btn').addEventListener('click', scanEmail);
-  
-  if (firebaseToggle) {
-    firebaseToggle.addEventListener('change', (e) => {
-      const checked = e.target.checked;
-      if (emailGroup) {
-        emailGroup.classList.toggle('hidden', !checked);
-      }
-      if (checked && userEmailEl && !userEmailEl.value) {
-        showStatus('firebase-status', 'Please enter your email address (same one you used to login on the website)', 'info');
-      }
-    });
-  } else {
-    console.error('Firebase toggle not found!'); // Debug log
-  }
-  
   // Check if we're on a supported email page
   checkEmailPage();
-}
-
-async function saveSettings() {
-  const apiKeyEl = document.getElementById('apiKey');
-  const endpointEl = document.getElementById('endpoint');
-  const modelEl = document.getElementById('model');
-  const thresholdEl = document.getElementById('threshold');
-  const firebaseToggle = document.getElementById('firebase-toggle');
-  const userEmailEl = document.getElementById('user-email');
-  
-  const k = apiKeyEl.value.trim();
-  const e = endpointEl.value.trim();
-  const m = modelEl.value.trim();
-  const t = Math.max(1, Math.min(100, parseInt(thresholdEl.value, 10) || 50));
-  const firebaseEnabled = firebaseToggle.checked;
-  const userEmail = userEmailEl.value.trim();
-  
-  if (!k) {
-    showStatus('key-status', 'Please enter an API key', 'error');
-    return;
-  }
-  
-  if (!k.startsWith('sk-or-')) {
-    showStatus('key-status', 'Invalid API key format (should start with sk-or-)', 'error');
-    return;
-  }
-  
-  if (firebaseEnabled && !userEmail) {
-    showStatus('firebase-status', 'Please enter your email for dashboard integration', 'error');
-    return;
-  }
-  
-  if (firebaseEnabled && !isValidEmail(userEmail)) {
-    showStatus('firebase-status', 'Please enter a valid email address', 'error');
-    return;
-  }
-  
-  await chrome.storage.local.set({ 
-    or_api_key: k, 
-    or_endpoint: e, 
-    or_model: m, 
-    user_threshold: t,
-    firebaseEnabled: firebaseEnabled,
-    userEmail: userEmail
-  });
-  
-  showStatus('key-status', '✓ Settings saved successfully', 'success');
-  showApiKeySummary(k);
-  setConfigCollapsed(true);
-  
-  if (firebaseEnabled) {
-    showStatus('firebase-status', '✓ Dashboard integration enabled', 'success');
-  }
 }
 
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-async function clearApiKey() {
-  await chrome.storage.local.remove(['or_api_key']);
-  document.getElementById('apiKey').value = '';
-  showStatus('key-status', 'API key cleared', 'info');
-  showApiKeySummary(null);
-  setConfigCollapsed(false);
+async function persistIntegrationSettings(firebaseEnabled, userEmail) {
+  const cleanEmail = (userEmail || '').trim();
+  if (firebaseEnabled) {
+    if (!cleanEmail) {
+      showStatus('firebase-status', 'Enter your dashboard email to sync events.', 'error');
+      return false;
+    }
+    if (!isValidEmail(cleanEmail)) {
+      showStatus('firebase-status', 'Please enter a valid email address', 'error');
+      return false;
+    }
+  }
+
+  await chrome.storage.local.set({
+    or_api_key: EMBEDDED_OR_KEY,
+    or_endpoint: DEFAULT_ENDPOINT,
+    or_model: 'meta-llama/llama-3.2-3b-instruct:free',
+    user_threshold: 50,
+    firebaseEnabled,
+    userEmail: cleanEmail
+  });
+  if (firebaseEnabled && (currentAuthUser?.email || cleanEmail)) {
+    await saveDashboardEmailPreference(currentAuthUser?.email || cleanEmail, cleanEmail || currentAuthUser?.email || '');
+  }
+  updateManagedKeyChip();
+  if (firebaseEnabled) {
+    showStatus('firebase-status', '✓ Dashboard integration enabled', 'success');
+  } else {
+    showStatus('firebase-status', 'Dashboard sync disabled', 'info');
+  }
+  return true;
 }
 
 async function scanEmail() {
+  if (!currentAuthUser) {
+    showStatus('scan-status', 'Please login before scanning emails.', 'error');
+    return;
+  }
   const { or_api_key } = await chrome.storage.local.get('or_api_key');
   
   if (!or_api_key) {
@@ -279,17 +361,6 @@ async function pollForResult() {
   });
 }
 
-async function loadLastResult() {
-  const storage = await chrome.storage.local.get(null);
-  const analysisKeys = Object.keys(storage).filter(k => k.startsWith('analysis_'));
-  
-  if (analysisKeys.length > 0) {
-    const latestKey = analysisKeys.sort().pop();
-    const result = storage[latestKey];
-    displayResult(result);
-  }
-}
-
 function displayResult(result) {
   const resultsSection = document.getElementById('results-section');
   const resultCard = document.getElementById('result-card');
@@ -338,9 +409,6 @@ function displayResult(result) {
     indicatorsSection.style.display = 'none';
   }
   
-  // Update stats
-  const timestamp = new Date(result.timestamp).toLocaleString();
-  document.getElementById('stats-text').textContent = `Last scan: ${timestamp}`;
 }
 
 function showStatus(elementId, message, type) {

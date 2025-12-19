@@ -1,5 +1,7 @@
 // background.js - Handles API calls and Firebase integration
 
+const EMBEDDED_OR_KEY = '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';
+
 // Import Firebase (using dynamic import since we can't use ES modules in service worker directly)
 let firebaseInitialized = false;
 let db = null;
@@ -23,8 +25,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
+async function requireAuthUser() {
+    const { authUser } = await chrome.storage.local.get('authUser');
+    if (!authUser || (authUser.expiresAt && Date.now() > authUser.expiresAt)) {
+        throw new Error('Please login via the extension popup to enable scanning.');
+    }
+    return authUser;
+}
+
 // Main analysis router function
 async function analyzeEmail(emailData) {
+    const authUser = await requireAuthUser();
     // Get settings from storage
     const settings = await chrome.storage.local.get([
         'or_api_key',
@@ -35,6 +46,13 @@ async function analyzeEmail(emailData) {
         'userEmail'
     ]);
     
+    if (!settings.userEmail && authUser?.email) {
+        settings.userEmail = authUser.email;
+    }
+    if (!settings.or_api_key) {
+        settings.or_api_key = EMBEDDED_OR_KEY;
+    }
+
     // Check for API key. If missing, use the local fallback.
     if (!settings.or_api_key) {
         console.warn("No OpenRouter API key configured. Running local, basic scan.");

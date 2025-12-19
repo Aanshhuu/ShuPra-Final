@@ -8,11 +8,20 @@ auth.onAuthStateChanged((user) => {
     } else {
         // User is signed in
         console.log('User is authenticated:', user.email);
+        const deriveName = () => {
+            if (user.displayName) return user.displayName;
+            if (user.email) {
+                const local = user.email.split('@')[0] || user.email;
+                return local.replace(/[._-]+/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase());
+            }
+            return 'Friend';
+        };
         
         // Store user info in chrome storage
         chrome.storage.local.set({
             userEmail: user.email,
             userId: user.uid,
+            userName: deriveName(),
             isLoggedIn: true
         });
     }
