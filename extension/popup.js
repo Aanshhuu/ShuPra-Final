@@ -3,7 +3,7 @@
 document.addEventListener('DOMContentLoaded', init);
 
 const FIREBASE_API_KEY = 'AIzaSyBjtmGy5tF6fGE3aDjeiiDLp9ssX0K5SOU';
-const EMBEDDED_OR_KEY = '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';
+const EMBEDDED_OR_KEY = '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';
 const DEFAULT_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 const AUTH_STORAGE_KEY = 'authUser';
 const USER_EMAIL_MAP_KEY = 'dashboardEmails';
@@ -372,6 +372,9 @@ function displayResult(result) {
   const recommendationText = document.getElementById('recommendation-text');
   const indicatorsList = document.getElementById('indicators-list');
   const indicatorsSection = document.getElementById('indicators-section');
+  const linkHealthSection = document.getElementById('link-health-section');
+  const linkHealthSummary = document.getElementById('link-health-summary');
+  const linkHealthList = document.getElementById('link-health-list');
   
   // Show results section
   resultsSection.style.display = 'block';
@@ -399,6 +402,10 @@ function displayResult(result) {
   // Set recommendation
   recommendationText.textContent = result.recommendation || 'No specific recommendation';
   
+  if (linkHealthSection && linkHealthSummary && linkHealthList) {
+    renderLinkHealthInPopup(result.linkHealth, linkHealthSection, linkHealthSummary, linkHealthList);
+  }
+  
   // Set indicators
   if (result.indicators && result.indicators.length > 0) {
     indicatorsSection.style.display = 'block';
@@ -409,6 +416,44 @@ function displayResult(result) {
     indicatorsSection.style.display = 'none';
   }
   
+}
+
+function renderLinkHealthInPopup(linkHealth, sectionEl, summaryEl, listEl) {
+  listEl.innerHTML = '';
+  if (!linkHealth || !Array.isArray(linkHealth.entries) || linkHealth.entries.length === 0) {
+    sectionEl.style.display = 'none';
+    summaryEl.textContent = '';
+    return;
+  }
+
+  sectionEl.style.display = 'block';
+  summaryEl.textContent = `Checked ${linkHealth.checkedLinks} of ${linkHealth.totalLinks} link(s)`;
+
+  linkHealth.entries.forEach(entry => {
+    const li = document.createElement('li');
+    const icon = document.createElement('span');
+    icon.textContent = entry.ok ? '🟢' : '⚠️';
+    const host = document.createElement('span');
+    host.textContent = entry.hostname || entry.url;
+    host.classList.add('link-host');
+    li.appendChild(icon);
+    li.appendChild(host);
+
+    const details = [];
+    if (entry.statusCode) {
+      details.push(`HTTP ${entry.statusCode}`);
+    }
+    if (entry.message && (!entry.ok || details.length === 0)) {
+      details.push(entry.message);
+    }
+    if (details.length) {
+      const detail = document.createElement('span');
+      detail.textContent = ` — ${details.join(' | ')}`;
+      li.appendChild(detail);
+    }
+
+    listEl.appendChild(li);
+  });
 }
 
 function showStatus(elementId, message, type) {

@@ -70,6 +70,17 @@ function textContent(el) {
   return el ? (el.innerText || el.textContent || '') : '';
 }
 
+function isElementVisible(el) {
+  if (!el) return false;
+  const rect = el.getBoundingClientRect();
+  if (rect.width === 0 && rect.height === 0) return false;
+  const style = window.getComputedStyle(el);
+  if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity || '1') === 0) {
+    return false;
+  }
+  return true;
+}
+
 const sanitizeWhitespace = (str = '') => str.replace(/\s+/g, ' ').trim();
 
 const extractLinkDetails = (nodeList) => {
@@ -101,14 +112,25 @@ function getGmailData() {
     const bodyEl = document.querySelector('.a3s.aiL') || document.querySelector("div[role='main'] .a3s");
     const fromEl = document.querySelector('.gD') || document.querySelector('[email]');
 
-    const subject = textContent(subjectEl).trim();
-    const body = textContent(bodyEl).trim();
+    const subjectVisible = isElementVisible(subjectEl);
+    const bodyVisible = isElementVisible(bodyEl);
+    const headerVisible = isElementVisible(fromEl);
+
+    // If the main elements are hidden we are likely back on inbox view
+    if (!subjectVisible && !bodyVisible) {
+      return null;
+    }
+
+    const subject = subjectVisible ? textContent(subjectEl).trim() : '';
+    const body = bodyVisible ? textContent(bodyEl).trim() : '';
     const senderAddress = fromEl ? (fromEl.getAttribute('email') || '').trim() : '';
     const senderName = fromEl ? textContent(fromEl).trim() : '';
     const from = senderAddress || senderName || '';
 
     // If no subject/body is found, we might be in the inbox view
     if (!subject && !body) return null;
+    // If subject/body exist but sender info is hidden, it's still the inbox pane
+    if (!headerVisible) return null;
 
     // Extract links
     const linkElements = document.querySelectorAll('.a3s.aiL a, [data-message-id] a');
@@ -130,8 +152,16 @@ function getOutlookData() {
     const bodyEl = document.querySelector("div[aria-label='Message body']") || document.querySelector("div[role='main'] div[dir='auto']");
     const fromEl = document.querySelector("div[role='article'] span[role='link']") || document.querySelector('div._3t0 span');
 
-    const subject = textContent(subjectEl).trim();
-    const body = textContent(bodyEl).trim();
+    const subjectVisible = isElementVisible(subjectEl);
+    const bodyVisible = isElementVisible(bodyEl);
+    const headerVisible = isElementVisible(fromEl);
+
+    if (!subjectVisible && !bodyVisible) {
+      return null;
+    }
+
+    const subject = subjectVisible ? textContent(subjectEl).trim() : '';
+    const body = bodyVisible ? textContent(bodyEl).trim() : '';
     const fromRaw = textContent(fromEl).trim();
     const [namePart, addressPart] = fromRaw.includes('<') ? fromRaw.split('<') : [fromRaw, ''];
     const senderName = namePart.trim();
@@ -140,6 +170,7 @@ function getOutlookData() {
 
     // If no subject/body is found, we might be in the inbox view
     if (!subject && !body) return null;
+    if (!headerVisible) return null;
 
     // Extract links
     const linkElements = document.querySelectorAll("div[aria-label='Message body'] a, div[role='main'] a");
@@ -367,6 +398,7 @@ function displayInlineResults(result) {
   const icon = result.isPhishing ? '⚠️' : '✅';
   const title = result.isPhishing ? 'Potential Phishing Detected' : 'Email Appears Safe';
   const confidence = result.confidence || 0;
+  const linkHealthHtml = renderLinkHealthSection(result);
 
   resultBanner.innerHTML = `
     <div class="phishing-result-header">
@@ -379,6 +411,7 @@ function displayInlineResults(result) {
     </div>
     <div class="phishing-result-body">
       <p class="phishing-result-recommendation">${escapeHtml(result.recommendation)}</p>
+      ${linkHealthHtml}
       ${result.indicators && result.indicators.length > 0 ? `
         <details class="phishing-result-details">
           <summary>View ${result.indicators.length} suspicious indicator(s)</summary>
@@ -408,6 +441,36 @@ function displayInlineResults(result) {
   if (confidence >= 70) {
     playHighRiskAlert();
   }
+}
+
+function renderLinkHealthSection(result) {
+  const health = result?.linkHealth;
+  if (!health || !Array.isArray(health.entries) || !health.entries.length) {
+    return '';
+  }
+
+  const summaryText = `Checked ${health.checkedLinks} of ${health.totalLinks} link(s)`;
+  const items = health.entries.map(entry => {
+    const icon = entry.ok ? '🟢' : '⚠️';
+    const hostLabel = escapeHtml(entry.hostname || entry.url);
+    const details = [];
+    if (entry.statusCode) {
+      details.push(`HTTP ${entry.statusCode}`);
+    }
+    if (entry.message && (!entry.ok || details.length === 0)) {
+      details.push(entry.message);
+    }
+    const info = details.length ? ` — ${escapeHtml(details.join(' | '))}` : '';
+    return `<li>${icon} <span class="link-host">${hostLabel}</span>${info}</li>`;
+  }).join('');
+
+  return `
+    <div class="phishing-link-health">
+      <div class="phishing-link-health-title">Link reachability</div>
+      <div class="phishing-link-health-summary">${escapeHtml(summaryText)}</div>
+      <ul class="phishing-link-health-list">${items}</ul>
+    </div>
+  `;
 }
 
 // Show error

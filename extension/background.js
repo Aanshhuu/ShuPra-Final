@@ -1,6 +1,6 @@
 // background.js - Handles API calls and Firebase integration
 
-const EMBEDDED_OR_KEY = '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';
+const EMBEDDED_OR_KEY = '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';
 
 // Import Firebase (using dynamic import since we can't use ES modules in service worker directly)
 let firebaseInitialized = false;
@@ -53,41 +53,45 @@ async function analyzeEmail(emailData) {
         settings.or_api_key = EMBEDDED_OR_KEY;
     }
 
+    const shouldSendToFirebase = settings.firebaseEnabled && settings.userEmail;
+    let analysisResult;
+    let persistenceMeta = {};
+
     // Check for API key. If missing, use the local fallback.
     if (!settings.or_api_key) {
         console.warn("No OpenRouter API key configured. Running local, basic scan.");
-        const result = runLocalBasicScan(emailData);
-        
-        // Send to Firebase if enabled
-        if (settings.firebaseEnabled && settings.userEmail) {
-            await sendToFirebase(emailData, result, settings.userEmail);
+        analysisResult = runLocalBasicScan(emailData);
+        persistenceMeta = {
+            model: 'local-basic',
+            threshold: 45,
+            source: 'local'
+        };
+    } else {
+        // Attempt to run the high-quality API scan
+        try {
+            const { result, persistenceMeta: meta } = await analyzeEmailWithOpenRouter(emailData, settings);
+            analysisResult = result;
+            persistenceMeta = meta;
+        } catch (error) {
+            // If the API call fails (e.g., Rate Limit Exceeded, 404, or network error)
+            console.error('OpenRouter API failed. Falling back to local scan.', error);
+            analysisResult = runLocalBasicScan(emailData, true); // Pass true to indicate fallback mode
+            persistenceMeta = {
+                model: 'local-basic',
+                threshold: 45,
+                source: 'fallback'
+            };
         }
-        
-        return result;
     }
 
-    // Attempt to run the high-quality API scan
-    try {
-        const result = await analyzeEmailWithOpenRouter(emailData, settings);
-        
-        // Send to Firebase if enabled
-        if (settings.firebaseEnabled && settings.userEmail) {
-            await sendToFirebase(emailData, result, settings.userEmail);
-        }
-        
-        return result;
-    } catch (error) {
-        // If the API call fails (e.g., Rate Limit Exceeded, 404, or network error)
-        console.error('OpenRouter API failed. Falling back to local scan.', error);
-        const result = runLocalBasicScan(emailData, true); // Pass true to indicate fallback mode
-        
-        // Send to Firebase if enabled
-        if (settings.firebaseEnabled && settings.userEmail) {
-            await sendToFirebase(emailData, result, settings.userEmail);
-        }
-        
-        return result;
+    await enrichResultWithLinkHealth(analysisResult, emailData);
+    await persistAnalysisResult(analysisResult, emailData, persistenceMeta);
+
+    if (shouldSendToFirebase) {
+        await sendToFirebase(emailData, analysisResult, settings.userEmail);
     }
+    
+    return analysisResult;
 }
 
 // Send data to Firebase
@@ -177,6 +181,27 @@ const ATTACHMENT_PHRASES = [
     /(open the attached|download the attachment|view attachment)/i,
     /(attached form|attached invoice|attached statement)/i
 ];
+
+const SAFE_CONFIDENCE_CAP = 45;
+const MIN_PHISH_CONFIDENCE = 55;
+
+function clampConfidenceValue(value) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) {
+        return 0;
+    }
+    return Math.max(0, Math.min(99, numeric));
+}
+
+function normalizeResultConfidence(result) {
+    if (!result) return;
+    const clamped = clampConfidenceValue(result.confidence || 0);
+    if (result.isPhishing) {
+        result.confidence = Math.max(clamped, MIN_PHISH_CONFIDENCE);
+    } else {
+        result.confidence = Math.min(clamped, SAFE_CONFIDENCE_CAP);
+    }
+}
 
 function extractSenderDomain(fromField = '') {
     const emailMatch = fromField.match(/@([a-z0-9.-]+\.[a-z]{2,})/i);
@@ -389,16 +414,14 @@ function runLocalBasicScan(emailData, isFallback = false) {
         recommendation = "Email appears safe based on basic local checks.";
     }
 
-    if (isFallback) {
-        recommendation = `API Scan failed due to error/limit. ${recommendation}`;
-    }
-
-    return {
+    const result = {
         isPhishing,
         confidence,
         indicators,
         recommendation
     };
+    normalizeResultConfidence(result);
+    return result;
 }
 
 // OpenRouter API Scan Function
@@ -492,34 +515,194 @@ Always cross-check link domains against the sender's domain and the email conten
         typeof result.recommendation !== 'string') {
       throw new Error('Invalid response structure from API');
     }
-    
-    if (result.indicators && result.indicators.length > 0) {
-        if (!result.isPhishing) {
-            console.warn(`AI output was inconsistent. Forcing result to PHISHING.`);
-        }
-        result.isPhishing = true;
-        result.confidence = Math.max(result.confidence, 50); 
+
+    if (!result.isPhishing && result.indicators && result.indicators.length > 0) {
+        console.warn('AI reported indicators but marked email as safe. Leaving classification unchanged.');
     }
-    
+
+    result.confidence = clampConfidenceValue(result.confidence);
+
     if (result.confidence >= threshold && !result.isPhishing) {
       result.isPhishing = true;
       result.recommendation = `Flagged due to high confidence (${result.confidence}%) exceeding threshold (${threshold}%). ${result.recommendation}`;
     }
+
+    normalizeResultConfidence(result);
     
-    await chrome.storage.local.set({
-      [`analysis_${emailData.emailId || Date.now()}`]: {
-        ...result,
-        timestamp: Date.now(),
-        emailData: {
-          from: emailData.from,
-          subject: emailData.subject
-        },
-        settings: {
-          model,
-          threshold
-        }
+    return {
+      result,
+      persistenceMeta: {
+        model,
+        threshold,
+        source: 'openrouter',
+        endpoint
       }
-    });
-    
-    return result;
+    };
+}
+
+async function enrichResultWithLinkHealth(result = {}, emailData = {}) {
+    const linkRecords = normalizeLinkRecords(emailData);
+    if (!linkRecords.length) {
+        return;
+    }
+
+    const maxChecks = 3;
+    const entries = [];
+    const indicators = Array.isArray(result.indicators) ? result.indicators : [];
+    let brokenLinkCount = 0;
+
+    for (const record of linkRecords.slice(0, maxChecks)) {
+        const href = typeof record === 'string' ? record : record?.href;
+        if (!href) continue;
+
+        const entry = await probeLinkReachability(href);
+        entries.push(entry);
+
+        if (!entry.ok) {
+            const host = entry.hostname || href;
+            const reason = entry.message ? ` (${entry.message})` : '';
+            indicators.push(`Link appears unreachable: ${host}${reason}`);
+            brokenLinkCount += 1;
+        }
+    }
+
+    if (entries.length) {
+        result.linkHealth = {
+            totalLinks: linkRecords.length,
+            checkedLinks: entries.length,
+            entries
+        };
+    }
+
+    if (brokenLinkCount > 0) {
+        const bump = Math.min(20, brokenLinkCount * 8);
+        result.confidence = clampConfidenceValue(result.confidence || 0) + bump;
+        if (!result.isPhishing && brokenLinkCount >= 2) {
+            result.isPhishing = true;
+            const warning = 'Multiple links failed to load during scanning.';
+            if (typeof result.recommendation === 'string' && result.recommendation.length) {
+                result.recommendation = `${warning} ${result.recommendation}`;
+            } else {
+                result.recommendation = warning;
+            }
+        }
+    }
+
+    result.indicators = indicators;
+    normalizeResultConfidence(result);
+}
+
+async function probeLinkReachability(url) {
+    const entry = {
+        url,
+        hostname: null,
+        ok: false,
+        status: 'unknown',
+        statusCode: null,
+        finalUrl: null,
+        message: ''
+    };
+
+    try {
+        const parsed = new URL(url);
+        entry.hostname = parsed.hostname;
+    } catch {
+        entry.message = 'Invalid URL';
+        entry.status = 'invalid';
+        return entry;
+    }
+
+    let headResponse = await attemptFetch(url, 'HEAD');
+    let response = null;
+
+    if (headResponse instanceof Response) {
+        if (headResponse.status === 405 || headResponse.status === 501) {
+            headResponse = null;
+        } else {
+            response = headResponse;
+        }
+    }
+
+    if (!response) {
+        const getResponse = await attemptFetch(url, 'GET');
+        if (getResponse instanceof Response) {
+            response = getResponse;
+        } else {
+            entry.status = 'error';
+            entry.message = normalizeFetchError(getResponse || headResponse);
+            return entry;
+        }
+    }
+
+    entry.statusCode = response.status || null;
+    entry.finalUrl = response.url || url;
+
+    if (response.ok || (response.status >= 200 && response.status < 400)) {
+        entry.ok = true;
+        entry.status = 'reachable';
+        return entry;
+    }
+
+    entry.ok = false;
+    entry.status = response.status >= 500 ? 'server-error' : 'blocked';
+    entry.message = `HTTP ${response.status}`;
+    return entry;
+}
+
+async function attemptFetch(url, method) {
+    try {
+        const response = await fetchWithTimeout(url, {
+            method,
+            redirect: 'follow',
+            credentials: 'omit',
+            cache: 'no-store',
+            headers: {
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+            }
+        }, 7000);
+        return response;
+    } catch (error) {
+        return error;
+    }
+}
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = 7000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        return response;
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
+function normalizeFetchError(error) {
+    if (!error) {
+        return 'Unknown network error';
+    }
+    if (error.name === 'AbortError') {
+        return 'Request timed out';
+    }
+    return error.message || 'Request failed';
+}
+
+async function persistAnalysisResult(result, emailData, meta = {}) {
+    if (!result) return;
+    try {
+        const key = `analysis_${emailData.emailId || Date.now()}`;
+        await chrome.storage.local.set({
+            [key]: {
+                ...result,
+                timestamp: Date.now(),
+                emailData: {
+                    from: emailData.from,
+                    subject: emailData.subject
+                },
+                settings: meta
+            }
+        });
+    } catch (error) {
+        console.warn('Unable to persist analysis result:', error);
+    }
 }
